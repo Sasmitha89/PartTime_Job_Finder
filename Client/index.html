@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Shiftly — Part-Time Job Finder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F6F7F9;
+    --surface: #FFFFFF;
+    --ink: #14213D;
+    --ink-soft: #5B6478;
+    --ink-faint: #8B93A7;
+    --border: #E3E6EC;
+    --accent: #0F9D74;
+    --accent-dark: #0B7A5B;
+    --accent-soft: #E6F6F0;
+    --employer: #6C5CE7;
+    --employer-soft: #EFECFD;
+    --danger: #E5484D;
+    --danger-soft: #FDECEC;
+    --warning: #B7791F;
+    --warning-soft: #FBF2DF;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --shadow-hover: 0 8px 24px rgba(20, 33, 61, 0.08);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, .brand { font-family: 'Sora', sans-serif; }
+  ::selection { background: var(--accent-soft); }
+
+  /* ---------- HEADER / NAV ---------- */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+  .header-inner {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 800;
+    font-size: 19px;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .brand svg { flex-shrink: 0; }
+  nav {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  nav button {
+    background: none;
+    border: none;
+    padding: 9px 14px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    border-radius: var(--radius-sm);
+    color: var(--ink-soft);
+    transition: background 0.15s, color 0.15s;
+  }
+  nav button:hover { background: var(--bg); color: var(--ink); }
+  nav button.active { background: var(--ink); color: white; }
+  nav button.cta-btn { background: var(--accent); color: white; }
+  nav button.cta-btn:hover { background: var(--accent-dark); }
+  .user-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px 6px 6px;
+    border-radius: 999px;
+    background: var(--bg);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-soft);
+  }
+  .avatar {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: white;
+    background: var(--accent);
+  }
+  .avatar.employer { background: var(--employer); }
+
+  /* ---------- LAYOUT ---------- */
+  main {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 28px 20px 60px;
+  }
+  .page-head { margin-bottom: 22px; }
+  .page-head h2 { font-size: 24px; margin: 0 0 4px; }
+  .page-head p { color: var(--ink-soft); margin: 0; font-size: 14.5px; }
+  .hidden { display: none !important; }
+
+  /* ---------- CARDS / FORMS ---------- */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 26px;
+    max-width: 460px;
+  }
+  .panel h2 { font-size: 20px; margin: 0 0 4px; }
+  .panel .sub { color: var(--ink-soft); font-size: 13.5px; margin: 0 0 20px; }
+
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin: 14px 0 6px;
+    color: var(--ink);
+  }
+  label.first { margin-top: 0; }
+  input, select, textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    background: var(--surface);
+    color: var(--ink);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  textarea { resize: vertical; min-height: 80px; }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  input.invalid, textarea.invalid { border-color: var(--danger); }
+  .field-error { color: var(--danger); font-size: 12.5px; margin-top: 4px; }
+
+  .role-toggle { display: flex; gap: 10px; margin-top: 6px; }
+  .role-option {
+    flex: 1;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .role-option svg { display: block; margin: 0 auto 6px; }
+  .role-option .role-label { font-weight: 700; font-size: 13.5px; }
+  .role-option .role-desc { font-size: 11.5px; color: var(--ink-faint); margin-top: 2px; }
+  .role-option.selected { border-color: var(--accent); background: var(--accent-soft); }
+  .role-option.selected.employer-selected { border-color: var(--employer); background: var(--employer-soft); }
+
+  button.btn {
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 11px 18px;
+    font-size: 14.5px;
+    font-weight: 700;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.05s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  button.btn:active { transform: scale(0.98); }
+  button.btn-primary { background: var(--accent); color: white; width: 100%; justify-content: center; margin-top: 20px; }
+  button.btn-primary:hover { background: var(--accent-dark); }
+  button.btn-primary:disabled { background: #B7C0CC; cursor: not-allowed; }
+  button.btn-secondary { background: var(--bg); color: var(--ink); border: 1px solid var(--border); }
+  button.btn-secondary:hover { background: #EDEFF3; }
+
+  .spinner {
+    width: 15px; height: 15px;
+    border: 2px solid rgba(255,255,255,0.4);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .banner {
+    padding: 11px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 13.5px;
+    margin-top: 16px;
+    display: none;
+  }
+  .banner.show { display: block; }
+  .banner.success { background: var(--accent-soft); color: var(--accent-dark); }
+  .banner.error { background: var(--danger-soft); color: var(--danger); }
+  .banner.info { background: var(--warning-soft); color: var(--warning); }
+
+  /* ---------- GATE (login required states) ---------- */
+  .gate {
+    background: var(--surface);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-md);
+    padding: 44px 24px;
+    text-align: center;
+    max-width: 460px;
+  }
+  .gate svg { margin-bottom: 12px; }
+  .gate h3 { margin: 0 0 6px; font-size: 17px; }
+  .gate p { color: var(--ink-soft); font-size: 13.5px; margin: 0 0 18px; }
+  .gate .gate-actions { display: flex; gap: 10px; justify-content: center; }
+
+  /* ---------- JOBS TOOLBAR ---------- */
+  .toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .search-box {
+    flex: 1;
+    min-width: 200px;
+    position: relative;
+  }
+  .search-box svg {
+    position: absolute;
+    left: 12px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--ink-faint);
+  }
+  .search-box input { padding-left: 36px; }
+  .toolbar select { width: auto; min-width: 140px; }
+
+  /* ---------- JOB CARDS ---------- */
+  .job-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 14px;
+  }
+  .job-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: var(--radius-sm);
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.15s, transform 0.15s;
+    animation: fadeUp 0.35s ease both;
+  }
+  .job-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-2px); }
+  .job-card.type-remote { border-left-color: var(--accent); }
+  .job-card.type-internship { border-left-color: var(--employer); }
+  .job-card.type-part-time { border-left-color: var(--warning); }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .job-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .job-title { font-size: 16px; font-weight: 700; margin: 0 0 3px; font-family: 'Sora', sans-serif; }
+  .job-company { font-size: 13.5px; color: var(--ink-soft); margin: 0 0 10px; font-weight: 500; }
+  .job-desc {
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+    margin: 0 0 14px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .job-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: var(--bg);
+    color: var(--ink-soft);
+  }
+  .badge.type { background: var(--accent-soft); color: var(--accent-dark); }
+  .badge.salary { background: var(--warning-soft); color: var(--warning); }
+  .job-footer {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+  }
+  .posted-date { font-size: 11.5px; color: var(--ink-faint); }
+  button.apply-btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  button.apply-btn:hover { background: var(--accent-dark); }
+  button.apply-btn.applied { background: var(--accent-soft); color: var(--accent-dark); cursor: default; }
+  button.apply-btn.locked { background: var(--bg); color: var(--ink-faint); }
+  button.apply-btn:disabled { cursor: default; }
+  .apply-note { font-size: 11.5px; color: var(--danger); margin-top: 6px; }
+
+  /* ---------- STATES: loading / empty / error ---------- */
+  .skeleton-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 18px;
+    height: 168px;
+  }
+  .skel-line {
+    background: linear-gradient(90deg, #EEF0F3 25%, #E4E7EC 37%, #EEF0F3 63%);
+    background-size: 400% 100%;
+    animation: shimmer 1.4s ease infinite;
+    border-radius: 6px;
+    margin-bottom: 10px;
+  }
+  @keyframes shimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+  .state-box {
+    text-align: center;
+    padding: 50px 20px;
+    color: var(--ink-soft);
+    grid-column: 1 / -1;
+  }
+  .state-box svg { margin-bottom: 10px; }
+  .state-box h3 { margin: 0 0 4px; color: var(--ink); font-size: 16px; }
+  .state-box p { margin: 0; font-size: 13.5px; }
+
+  @media (max-width: 640px) {
+    .header-inner { flex-direction: column; align-items: stretch; }
+    nav { justify-content: center; }
+    .toolbar { flex-direction: column; }
+    .toolbar select { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="7" width="18" height="13" rx="2" stroke="#0F9D74" stroke-width="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="#0F9D74" stroke-width="2"/></svg>
+      Shiftly
+    </div>
+    <nav id="navLinks"></nav>
+  </div>
+</header>
+
+<main>
+
+  <!-- JOBS TAB -->
+  <section id="tab-jobs">
+    <div class="page-head">
+      <h2>Find your next shift</h2>
+      <p>Part-time, remote and internship roles, updated live.</p>
+    </div>
+    <div class="toolbar">
+      <div class="search-box">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <input type="text" id="searchInput" placeholder="Search by title, company or location" oninput="renderJobs()" />
+      </div>
+      <select id="filterType" onchange="renderJobs()">
+        <option value="">All types</option>
+        <option value="part-time">Part-time</option>
+        <option value="remote">Remote</option>
+        <option value="internship">Internship</option>
+      </select>
+      <select id="sortBy" onchange="renderJobs()">
+        <option value="newest">Newest first</option>
+        <option value="salary-high">Salary: high to low</option>
+        <option value="salary-low">Salary: low to high</option>
+      </select>
+    </div>
+    <div id="jobsList" class="job-grid"></div>
+  </section>
+
+  <!-- LOGIN TAB -->
+  <section id="tab-login" class="hidden">
+    <div class="page-head"><h2>Welcome back</h2><p>Log in to apply or manage your job posts.</p></div>
+    <div class="panel">
+      <label class="first">Email</label>
+      <input type="email" id="loginEmail" placeholder="you@example.com" />
+      <label>Password</label>
+      <input type="password" id="loginPassword" placeholder="••••••••" />
+      <button class="btn btn-primary" id="loginBtn" onclick="login()">Log in</button>
+      <div id="loginMsg" class="banner"></div>
+    </div>
+  </section>
+
+  <!-- REGISTER TAB -->
+  <section id="tab-register" class="hidden">
+    <div class="page-head"><h2>Create your account</h2><p>Join as a job seeker or an employer.</p></div>
+    <div class="panel">
+      <label class="first">I am a</label>
+      <div class="role-toggle">
+        <div class="role-option selected" id="roleOptSeeker" onclick="selectRole('jobseeker')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#0F9D74" stroke-width="2"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6" stroke="#0F9D74" stroke-width="2"/></svg>
+          <div class="role-label">Job Seeker</div>
+          <div class="role-desc">Browse & apply to jobs</div>
+        </div>
+        <div class="role-option" id="roleOptEmployer" onclick="selectRole('employer')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="4" y="8" width="16" height="12" rx="2" stroke="#6C5CE7" stroke-width="2"/><path d="M9 8V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" stroke="#6C5CE7" stroke-width="2"/></svg>
+          <div class="role-label">Employer</div>
+          <div class="role-desc">Post & manage jobs</div>
+        </div>
+      </div>
+      <label>Full name</label>
+      <input type="text" id="regName" placeholder="Jane Silva" />
+      <div class="field-error hidden" id="err-regName">Please enter your name.</div>
+      <label>Email</label>
+      <input type="email" id="regEmail" placeholder="you@example.com" />
+      <div class="field-error hidden" id="err-regEmail">Please enter a valid email.</div>
+      <label>Password</label>
+      <input type="password" id="regPassword" placeholder="At least 6 characters" />
+      <div class="field-error hidden" id="err-regPassword">Password must be at least 6 characters.</div>
+      <button class="btn btn-primary" id="registerBtn" onclick="register()">Create account</button>
+      <div id="regMsg" class="banner"></div>
+    </div>
+  </section>
+
+  <!-- POST JOB TAB -->
+  <section id="tab-postJob" class="hidden">
+    <div class="page-head"><h2>Post a job</h2><p>Reach part-time job seekers in minutes.</p></div>
+    <div id="postJobGate"></div>
+    <div class="panel hidden" id="postJobForm">
+      <label class="first">Job title</label>
+      <input type="text" id="jobTitle" placeholder="e.g. Weekend Barista" />
+      <div class="field-error hidden" id="err-jobTitle">Please enter a job title.</div>
+      <label>Company</label>
+      <input type="text" id="jobCompany" placeholder="e.g. Corner Cafe" />
+      <div class="field-error hidden" id="err-jobCompany">Please enter a company name.</div>
+      <label>Location</label>
+      <input type="text" id="jobLocation" placeholder="e.g. Kandy or Remote" />
+      <div class="field-error hidden" id="err-jobLocation">Please enter a location.</div>
+      <label>Description</label>
+      <textarea id="jobDescription" placeholder="What will this person do?"></textarea>
+      <div class="field-error hidden" id="err-jobDescription">Please add a short description.</div>
+      <label>Job type</label>
+      <select id="jobType">
+        <option value="part-time">Part-time</option>
+        <option value="remote">Remote</option>
+        <option value="internship">Internship</option>
+      </select>
+      <label>Salary / rate (optional)</label>
+      <input type="number" id="jobSalary" placeholder="e.g. 25000" />
+      <button class="btn btn-primary" id="postJobBtn" onclick="postJob()">Post job</button>
+      <div id="postJobMsg" class="banner"></div>
+    </div>
+  </section>
+
+  <!-- PROFILE TAB -->
+  <section id="tab-profile" class="hidden">
+    <div class="page-head"><h2>Your profile</h2></div>
+    <div class="panel" id="profilePanel"></div>
+  </section>
+
+</main>
+
+<script>
+const API_BASE = "http://localhost:5000/api";
+
+// ---------- STATE ----------
+let token = null;
+let role = null;
+let userEmail = null;
+let allJobs = [];
+let appliedJobIds = new Set();
+let activeTab = "jobs";
+
+// ---------- NAV ----------
+function renderNav() {
+  const nav = document.getElementById("navLinks");
+  let tabs = [];
+  if (!token) {
+    tabs = [
+      { id: "jobs", label: "Jobs" },
+      { id: "register", label: "Register" },
+      { id: "login", label: "Login", cta: true }
+    ];
+  } else if (role === "jobseeker") {
+    tabs = [
+      { id: "jobs", label: "Jobs" },
+      { id: "profile", label: "Profile" }
+    ];
+  } else if (role === "employer") {
+    tabs = [
+      { id: "jobs", label: "Jobs" },
+      { id: "postJob", label: "Post a Job" },
+      { id: "profile", label: "Profile" }
+    ];
+  }
+
+  nav.innerHTML = tabs.map(t =>
+    `<button data-tab="${t.id}" class="${t.id === activeTab ? "active" : ""} ${t.cta ? "cta-btn" : ""}">${t.label}</button>`
+  ).join("");
+
+  if (token) {
+    const chip = document.createElement("div");
+    chip.className = "user-chip";
+    chip.innerHTML = `<span class="avatar ${role === "employer" ? "employer" : ""}">${(userEmail || "?")[0].toUpperCase()}</span>
+      <span>${role === "employer" ? "Employer" : "Job seeker"}</span>`;
+    nav.appendChild(chip);
+    const logoutBtn = document.createElement("button");
+    logoutBtn.textContent = "Logout";
+    logoutBtn.onclick = logout;
+    nav.appendChild(logoutBtn);
+  }
+
+  nav.querySelectorAll("button[data-tab]").forEach(btn => {
+    btn.addEventListener("click", () => switchTab(btn.dataset.tab));
+  });
+}
+
+function switchTab(tabId) {
+  activeTab = tabId;
+  document.querySelectorAll("main > section").forEach(s => s.classList.add("hidden"));
+  document.getElementById("tab-" + tabId).classList.remove("hidden");
+  renderNav();
+  if (tabId === "postJob") renderPostJobGate();
+  if (tabId === "profile") renderProfile();
+}
+
+// ---------- HELPERS ----------
+function showBanner(el, message, type) {
+  el.textContent = message;
+  el.className = `banner show ${type}`;
+}
+function clearFieldErrors(prefix) {
+  document.querySelectorAll(`[id^="err-${prefix}"]`).forEach(e => e.classList.add("hidden"));
+  document.querySelectorAll(`#tab-${activeTab} input, #tab-${activeTab} textarea`).forEach(i => i.classList.remove("invalid"));
+}
+function setBtnLoading(btn, loading, label) {
+  btn.disabled = loading;
+  btn.innerHTML = loading ? `<span class="spinner"></span> Please wait...` : label;
+}
+function timeAgo(dateStr) {
+  if (!dateStr) return "";
+  const diffMs = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return "Just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 30) return `${days}d ago`;
+  return new Date(dateStr).toLocaleDateString();
+}
+
+// ---------- REGISTER ----------
+function selectRole(r) {
+  document.getElementById("roleOptSeeker").classList.toggle("selected", r === "jobseeker");
+  document.getElementById("roleOptSeeker").classList.remove("employer-selected");
+  document.getElementById("roleOptEmployer").classList.toggle("selected", r === "employer");
+  document.getElementById("roleOptEmployer").classList.toggle("employer-selected", r === "employer");
+  document.getElementById("roleOptEmployer").dataset.chosen = r === "employer" ? "1" : "";
+  window.__selectedRole = r;
+}
+window.__selectedRole = "jobseeker";
+
+async function register() {
+  const name = document.getElementById("regName").value.trim();
+  const email = document.getElementById("regEmail").value.trim();
+  const password = document.getElementById("regPassword").value;
+  const msgEl = document.getElementById("regMsg");
+  clearFieldErrors("reg");
+  msgEl.className = "banner";
+
+  let valid = true;
+  if (!name) { document.getElementById("err-regName").classList.remove("hidden"); document.getElementById("regName").classList.add("invalid"); valid = false; }
+  if (!/^\S+@\S+\.\S+$/.test(email)) { document.getElementById("err-regEmail").classList.remove("hidden"); document.getElementById("regEmail").classList.add("invalid"); valid = false; }
+  if (password.length < 6) { document.getElementById("err-regPassword").classList.remove("hidden"); document.getElementById("regPassword").classList.add("invalid"); valid = false; }
+  if (!valid) return;
+
+  const btn = document.getElementById("registerBtn");
+  setBtnLoading(btn, true);
+  try {
+    const res = await fetch(`${API_BASE}/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, password, role: window.__selectedRole })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showBanner(msgEl, "Account created. You can log in now.", "success");
+      document.getElementById("regName").value = "";
+      document.getElementById("regEmail").value = "";
+      document.getElementById("regPassword").value = "";
+    } else {
+      showBanner(msgEl, data.message || "Registration failed.", "error");
+    }
+  } catch (err) {
+    showBanner(msgEl, "Can't reach the server. Make sure it's running on port 5000.", "error");
+  } finally {
+    setBtnLoading(btn, false, "Create account");
+  }
+}
+
+// ---------- LOGIN ----------
+async function login() {
+  const email = document.getElementById("loginEmail").value.trim();
+  const password = document.getElementById("loginPassword").value;
+  const msgEl = document.getElementById("loginMsg");
+  msgEl.className = "banner";
+
+  if (!email || !password) {
+    showBanner(msgEl, "Please enter your email and password.", "error");
+    return;
+  }
+
+  const btn = document.getElementById("loginBtn");
+  setBtnLoading(btn, true);
+  try {
+    const res = await fetch(`${API_BASE}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      token = data.token;
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      role = payload.role;
+      userEmail = email;
+      document.getElementById("loginEmail").value = "";
+      document.getElementById("loginPassword").value = "";
+      switchTab("jobs");
+      renderJobs();
+    } else {
+      showBanner(msgEl, data.message || "Login failed.", "error");
+    }
+  } catch (err) {
+    showBanner(msgEl, "Can't reach the server. Make sure it's running on port 5000.", "error");
+  } finally {
+    setBtnLoading(btn, false, "Log in");
+  }
+}
+
+function logout() {
+  token = null; role = null; userEmail = null;
+  appliedJobIds = new Set();
+  switchTab("jobs");
+  renderJobs();
+}
+
+// ---------- PROFILE ----------
+function renderProfile() {
+  const panel = document.getElementById("profilePanel");
+  panel.innerHTML = `
+    <label class="first">Signed in as</label>
+    <div style="font-size:14px;padding:8px 0;">${userEmail || "—"}</div>
+    <label>Role</label>
+    <div style="font-size:14px;padding:8px 0; text-transform:capitalize;">${role || "—"}</div>
+    <button class="btn btn-secondary" onclick="logout()" style="margin-top:16px;">Log out</button>
+  `;
+}
+
+// ---------- JOBS ----------
+async function loadJobs() {
+  const listEl = document.getElementById("jobsList");
+  listEl.innerHTML = Array(4).fill(`
+    <div class="skeleton-card">
+      <div class="skel-line" style="width:60%;height:16px;"></div>
+      <div class="skel-line" style="width:40%;height:12px;"></div>
+      <div class="skel-line" style="width:100%;height:12px;"></div>
+      <div class="skel-line" style="width:90%;height:12px;"></div>
+    </div>`).join("");
+
+  try {
+    const res = await fetch(`${API_BASE}/jobs`);
+    if (!res.ok) throw new Error("bad status");
+    allJobs = await res.json();
+    renderJobs();
+  } catch (err) {
+    listEl.innerHTML = `
+      <div class="state-box">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#8B93A7" stroke-width="2"/><path d="M12 8v5M12 16h.01" stroke="#8B93A7" stroke-width="2" stroke-linecap="round"/></svg>
+        <h3>Couldn't load jobs</h3>
+        <p>Check that your server is running on port 5000, then try again.</p>
+        <button class="btn btn-secondary" style="margin-top:14px;" onclick="loadJobs()">Retry</button>
+      </div>`;
+  }
+}
+
+function renderJobs() {
+  const listEl = document.getElementById("jobsList");
+  if (!allJobs) return;
+  const q = (document.getElementById("searchInput").value || "").toLowerCase();
+  const type = document.getElementById("filterType").value;
+  const sort = document.getElementById("sortBy").value;
+
+  let jobs = allJobs.filter(j => {
+    const matchesQ = !q || [j.title, j.company, j.location].some(f => (f || "").toLowerCase().includes(q));
+    const matchesType = !type || j.type === type;
+    return matchesQ && matchesType;
+  });
+
+  jobs = jobs.slice().sort((a, b) => {
+    if (sort === "salary-high") return (b.salary || 0) - (a.salary || 0);
+    if (sort === "salary-low") return (a.salary || 0) - (b.salary || 0);
+    return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+  });
+
+  if (jobs.length === 0) {
+    listEl.innerHTML = `
+      <div class="state-box">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><rect x="3" y="7" width="18" height="13" rx="2" stroke="#8B93A7" stroke-width="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="#8B93A7" stroke-width="2"/></svg>
+        <h3>No jobs match yet</h3>
+        <p>${allJobs.length === 0 ? "No jobs have been posted yet — check back soon." : "Try a different search or filter."}</p>
+      </div>`;
+    return;
+  }
+
+  listEl.innerHTML = jobs.map(job => {
+    const company = job.postedBy && job.postedBy.name ? job.postedBy.name : job.company;
+    const applied = appliedJobIds.has(job._id);
+    let applyBtnHtml;
+    if (!token) {
+      applyBtnHtml = `<button class="apply-btn locked" onclick="handleLockedApply()">Apply</button>`;
+    } else if (role === "employer") {
+      applyBtnHtml = `<button class="apply-btn locked" onclick="handleEmployerApplyAttempt()">Apply</button>`;
+    } else if (applied) {
+      applyBtnHtml = `<button class="apply-btn applied" disabled>✓ Applied</button>`;
+    } else {
+      applyBtnHtml = `<button class="apply-btn" onclick="applyToJob('${job._id}', this)">Apply</button>`;
+    }
+    return `
+      <div class="job-card type-${job.type}">
+        <div class="job-top">
+          <div>
+            <h3 class="job-title">${job.title}</h3>
+            <p class="job-company">${job.company}${company && company !== job.company ? " · posted by " + company : ""}</p>
+          </div>
+        </div>
+        <p class="job-desc">${job.description || ""}</p>
+        <div class="job-meta">
+          <span class="badge type">${job.type.replace("-", " ")}</span>
+          <span class="badge">📍 ${job.location}</span>
+          ${job.salary ? `<span class="badge salary">${job.salary}/mo</span>` : ""}
+        </div>
+        <div class="job-footer">
+          <span class="posted-date">${job.createdAt ? "Posted " + timeAgo(job.createdAt) : ""}</span>
+          <div style="text-align:right;">
+            ${applyBtnHtml}
+            <div class="apply-note hidden" id="note-${job._id}"></div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+function handleLockedApply() {
+  switchTab("login");
+  const msgEl = document.getElementById("loginMsg");
+  showBanner(msgEl, "Please log in as a job seeker to apply for this job.", "info");
+}
+
+function handleEmployerApplyAttempt() {
+  alert("Applications are open to job seekers only. Log in with a job seeker account to apply.");
+}
+
+async function applyToJob(jobId, btnEl) {
+  const noteEl = document.getElementById(`note-${jobId}`);
+  noteEl.classList.add("hidden");
+  const originalHtml = btnEl.innerHTML;
+  btnEl.disabled = true;
+  btnEl.innerHTML = `<span class="spinner" style="border-color: rgba(15,157,116,0.3); border-top-color: var(--accent-dark);"></span>`;
+
+  try {
+    const res = await fetch(`${API_BASE}/applications/${jobId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      }
+    });
+    const data = await res.json();
+    if (res.ok) {
+      appliedJobIds.add(jobId);
+      renderJobs();
+    } else {
+      if (data.message === "Already applied") appliedJobIds.add(jobId);
+      noteEl.textContent = data.message || "Could not apply.";
+      noteEl.classList.remove("hidden");
+      btnEl.innerHTML = originalHtml;
+      btnEl.disabled = false;
+    }
+  } catch (err) {
+    noteEl.textContent = "Server error. Please try again.";
+    noteEl.classList.remove("hidden");
+    btnEl.innerHTML = originalHtml;
+    btnEl.disabled = false;
+  }
+}
+
+// ---------- POST A JOB ----------
+function renderPostJobGate() {
+  const gateEl = document.getElementById("postJobGate");
+  const formEl = document.getElementById("postJobForm");
+
+  if (token && role === "employer") {
+    gateEl.innerHTML = "";
+    formEl.classList.remove("hidden");
+    return;
+  }
+
+  formEl.classList.add("hidden");
+  if (!token) {
+    gateEl.innerHTML = `
+      <div class="gate">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" style="margin:0 auto"><rect x="5" y="11" width="14" height="9" rx="2" stroke="#8B93A7" stroke-width="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="#8B93A7" stroke-width="2"/></svg>
+        <h3>Employer login required</h3>
+        <p>Log in or register as an employer to post a job.</p>
+        <div class="gate-actions">
+          <button class="btn btn-secondary" onclick="switchTab('register')">Register</button>
+          <button class="btn btn-primary" style="margin-top:0;width:auto;" onclick="switchTab('login')">Log in</button>
+        </div>
+      </div>`;
+  } else {
+    gateEl.innerHTML = `
+      <div class="gate">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" style="margin:0 auto"><circle cx="12" cy="12" r="9" stroke="#8B93A7" stroke-width="2"/><path d="M12 8v5M12 16h.01" stroke="#8B93A7" stroke-width="2" stroke-linecap="round"/></svg>
+        <h3>Job seeker accounts can't post jobs</h3>
+        <p>Posting jobs is available to employer accounts only.</p>
+      </div>`;
+  }
+}
+
+async function postJob() {
+  const msgEl = document.getElementById("postJobMsg");
+  clearFieldErrors("job");
+  msgEl.className = "banner";
+
+  const title = document.getElementById("jobTitle").value.trim();
+  const company = document.getElementById("jobCompany").value.trim();
+  const location = document.getElementById("jobLocation").value.trim();
+  const description = document.getElementById("jobDescription").value.trim();
+  const type = document.getElementById("jobType").value;
+  const salary = document.getElementById("jobSalary").value;
+
+  let valid = true;
+  if (!title) { document.getElementById("err-jobTitle").classList.remove("hidden"); document.getElementById("jobTitle").classList.add("invalid"); valid = false; }
+  if (!company) { document.getElementById("err-jobCompany").classList.remove("hidden"); document.getElementById("jobCompany").classList.add("invalid"); valid = false; }
+  if (!location) { document.getElementById("err-jobLocation").classList.remove("hidden"); document.getElementById("jobLocation").classList.add("invalid"); valid = false; }
+  if (!description) { document.getElementById("err-jobDescription").classList.remove("hidden"); document.getElementById("jobDescription").classList.add("invalid"); valid = false; }
+  if (!valid) return;
+
+  const btn = document.getElementById("postJobBtn");
+  setBtnLoading(btn, true);
+  try {
+    const res = await fetch(`${API_BASE}/jobs`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ title, company, location, description, type, salary: salary ? Number(salary) : undefined })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showBanner(msgEl, "Job posted. It now appears in the Jobs tab.", "success");
+      ["jobTitle","jobCompany","jobLocation","jobDescription","jobSalary"].forEach(id => document.getElementById(id).value = "");
+      document.getElementById("jobType").value = "part-time";
+      loadJobs();
+    } else {
+      showBanner(msgEl, data.message || "Could not post job.", "error");
+    }
+  } catch (err) {
+    showBanner(msgEl, "Can't reach the server. Make sure it's running on port 5000.", "error");
+  } finally {
+    setBtnLoading(btn, false, "Post job");
+  }
+}
+
+// ---------- INIT ----------
+renderNav();
+loadJobs();
+</script>
+
+</body>
+</html>
