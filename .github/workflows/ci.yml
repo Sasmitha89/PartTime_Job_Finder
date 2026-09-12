@@ -1,0 +1,67 @@
+name: CI
+
+# Runs automated checks on every push and pull request targeting main.
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  backend-checks:
+    name: Install, lint, and smoke-test the backend
+    runs-on: ubuntu-latest
+
+    # Spin up a real MongoDB instance for the smoke test to connect to.
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    defaults:
+      run:
+        working-directory: server
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check JavaScript files for syntax errors
+        run: find . -name "*.js" -not -path "./node_modules/*" -print0 | xargs -0 -n1 node --check
+
+      - name: Run test suite (if one exists)
+        run: npm test --if-present
+
+      - name: Smoke test - server starts and responds
+        env:
+          PORT: 5000
+          MONGO_URI: mongodb://127.0.0.1:27017/job-finder-ci
+          JWT_SECRET: ci-test-secret-do-not-use-in-production
+        run: |
+          node server.js &
+          SERVER_PID=$!
+          npx --yes wait-on http://127.0.0.1:5000 -t 20000
+          RESPONSE=$(curl -s http://127.0.0.1:5000)
+          echo "Response: $RESPONSE"
+          echo "$RESPONSE" | grep -q "Job Finder API is running" || (echo "Unexpected response from server" && exit 1)
+          kill $SERVER_PID
