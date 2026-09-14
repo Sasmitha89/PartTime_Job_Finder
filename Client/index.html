@@ -35,9 +35,9 @@
     background: var(--bg);
     color: var(--ink);
     -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
   }
   h1, h2, h3, .brand { font-family: 'Sora', sans-serif; }
-  ::selection { background: var(--accent-soft); }
 
   /* ---------- HEADER / NAV ---------- */
   header {
@@ -66,13 +66,7 @@
     color: var(--ink);
     white-space: nowrap;
   }
-  .brand svg { flex-shrink: 0; }
-  nav {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    flex-wrap: wrap;
-  }
+  nav { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
   nav button {
     background: none;
     border: none;
@@ -87,22 +81,15 @@
   }
   nav button:hover { background: var(--bg); color: var(--ink); }
   nav button.active { background: var(--ink); color: white; }
-  nav button.cta-btn { background: var(--accent); color: white; }
-  nav button.cta-btn:hover { background: var(--accent-dark); }
   .user-chip {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    display: flex; align-items: center; gap: 8px;
     padding: 6px 10px 6px 6px;
     border-radius: 999px;
     background: var(--bg);
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--ink-soft);
+    font-size: 13px; font-weight: 600; color: var(--ink-soft);
   }
   .avatar {
-    width: 26px; height: 26px;
-    border-radius: 50%;
+    width: 26px; height: 26px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     font-size: 12px; font-weight: 700; color: white;
     background: var(--accent);
@@ -110,17 +97,56 @@
   .avatar.employer { background: var(--employer); }
 
   /* ---------- LAYOUT ---------- */
-  main {
-    max-width: 1080px;
-    margin: 0 auto;
-    padding: 28px 20px 60px;
-  }
+  main { max-width: 1080px; margin: 0 auto; padding: 28px 20px 60px; }
   .page-head { margin-bottom: 22px; }
   .page-head h2 { font-size: 24px; margin: 0 0 4px; }
   .page-head p { color: var(--ink-soft); margin: 0; font-size: 14.5px; }
   .hidden { display: none !important; }
 
-  /* ---------- CARDS / FORMS ---------- */
+  /* ---------- AUTH LANDING (full screen) ---------- */
+  .auth-shell {
+    min-height: calc(100vh - 62px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+  .auth-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 34px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: var(--shadow-hover);
+  }
+  .auth-logo {
+    display: flex; align-items: center; gap: 8px;
+    font-weight: 800; font-size: 20px; margin-bottom: 6px;
+  }
+  .auth-card > p.tagline { color: var(--ink-soft); font-size: 13.5px; margin: 0 0 22px; }
+  .auth-switch {
+    display: flex;
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    padding: 4px;
+    margin-bottom: 20px;
+  }
+  .auth-switch button {
+    flex: 1;
+    border: none;
+    background: none;
+    padding: 9px;
+    font-size: 13.5px;
+    font-weight: 700;
+    font-family: 'Inter', sans-serif;
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--ink-soft);
+  }
+  .auth-switch button.active { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+
+  /* ---------- FORM ELEMENTS ---------- */
   .panel {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -128,16 +154,7 @@
     padding: 26px;
     max-width: 460px;
   }
-  .panel h2 { font-size: 20px; margin: 0 0 4px; }
-  .panel .sub { color: var(--ink-soft); font-size: 13.5px; margin: 0 0 20px; }
-
-  label {
-    display: block;
-    font-size: 13px;
-    font-weight: 600;
-    margin: 14px 0 6px;
-    color: var(--ink);
-  }
+  label { display: block; font-size: 13px; font-weight: 600; margin: 14px 0 6px; color: var(--ink); }
   label.first { margin-top: 0; }
   input, select, textarea {
     width: 100%;
@@ -152,21 +169,17 @@
   }
   textarea { resize: vertical; min-height: 80px; }
   input:focus, select:focus, textarea:focus {
-    outline: none;
-    border-color: var(--accent);
+    outline: none; border-color: var(--accent);
     box-shadow: 0 0 0 3px var(--accent-soft);
   }
   input.invalid, textarea.invalid { border-color: var(--danger); }
   .field-error { color: var(--danger); font-size: 12.5px; margin-top: 4px; }
+  .helper-text { color: var(--ink-faint); font-size: 12px; margin-top: 4px; }
 
   .role-toggle { display: flex; gap: 10px; margin-top: 6px; }
   .role-option {
-    flex: 1;
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 12px;
-    text-align: center;
-    cursor: pointer;
+    flex: 1; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+    padding: 12px; text-align: center; cursor: pointer;
     transition: border-color 0.15s, background 0.15s;
   }
   .role-option svg { display: block; margin: 0 auto 6px; }
@@ -176,17 +189,11 @@
   .role-option.selected.employer-selected { border-color: var(--employer); background: var(--employer-soft); }
 
   button.btn {
-    border: none;
-    border-radius: var(--radius-sm);
-    padding: 11px 18px;
-    font-size: 14.5px;
-    font-weight: 700;
-    font-family: 'Inter', sans-serif;
-    cursor: pointer;
+    border: none; border-radius: var(--radius-sm);
+    padding: 11px 18px; font-size: 14.5px; font-weight: 700;
+    font-family: 'Inter', sans-serif; cursor: pointer;
     transition: background 0.15s, transform 0.05s;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
+    display: inline-flex; align-items: center; gap: 8px;
   }
   button.btn:active { transform: scale(0.98); }
   button.btn-primary { background: var(--accent); color: white; width: 100%; justify-content: center; margin-top: 20px; }
@@ -196,75 +203,30 @@
   button.btn-secondary:hover { background: #EDEFF3; }
 
   .spinner {
-    width: 15px; height: 15px;
-    border: 2px solid rgba(255,255,255,0.4);
-    border-top-color: white;
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
+    width: 15px; height: 15px; border: 2px solid rgba(255,255,255,0.4);
+    border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  .banner {
-    padding: 11px 14px;
-    border-radius: var(--radius-sm);
-    font-size: 13.5px;
-    margin-top: 16px;
-    display: none;
-  }
+  .banner { padding: 11px 14px; border-radius: var(--radius-sm); font-size: 13.5px; margin-top: 16px; display: none; }
   .banner.show { display: block; }
   .banner.success { background: var(--accent-soft); color: var(--accent-dark); }
   .banner.error { background: var(--danger-soft); color: var(--danger); }
   .banner.info { background: var(--warning-soft); color: var(--warning); }
 
-  /* ---------- GATE (login required states) ---------- */
-  .gate {
-    background: var(--surface);
-    border: 1px dashed var(--border);
-    border-radius: var(--radius-md);
-    padding: 44px 24px;
-    text-align: center;
-    max-width: 460px;
-  }
-  .gate svg { margin-bottom: 12px; }
-  .gate h3 { margin: 0 0 6px; font-size: 17px; }
-  .gate p { color: var(--ink-soft); font-size: 13.5px; margin: 0 0 18px; }
-  .gate .gate-actions { display: flex; gap: 10px; justify-content: center; }
-
   /* ---------- JOBS TOOLBAR ---------- */
-  .toolbar {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-  }
-  .search-box {
-    flex: 1;
-    min-width: 200px;
-    position: relative;
-  }
-  .search-box svg {
-    position: absolute;
-    left: 12px; top: 50%;
-    transform: translateY(-50%);
-    color: var(--ink-faint);
-  }
+  .toolbar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+  .search-box { flex: 1; min-width: 200px; position: relative; }
+  .search-box svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--ink-faint); }
   .search-box input { padding-left: 36px; }
   .toolbar select { width: auto; min-width: 140px; }
 
   /* ---------- JOB CARDS ---------- */
-  .job-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 14px;
-  }
+  .job-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
   .job-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-left: 4px solid var(--accent);
-    border-radius: var(--radius-sm);
-    padding: 18px;
-    display: flex;
-    flex-direction: column;
+    background: var(--surface); border: 1px solid var(--border);
+    border-left: 4px solid var(--accent); border-radius: var(--radius-sm);
+    padding: 18px; display: flex; flex-direction: column;
     transition: box-shadow 0.15s, transform 0.15s;
     animation: fadeUp 0.35s ease both;
   }
@@ -272,89 +234,52 @@
   .job-card.type-remote { border-left-color: var(--accent); }
   .job-card.type-internship { border-left-color: var(--employer); }
   .job-card.type-part-time { border-left-color: var(--warning); }
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .job-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
   .job-title { font-size: 16px; font-weight: 700; margin: 0 0 3px; font-family: 'Sora', sans-serif; }
   .job-company { font-size: 13.5px; color: var(--ink-soft); margin: 0 0 10px; font-weight: 500; }
   .job-desc {
-    font-size: 13.5px;
-    color: var(--ink-soft);
-    line-height: 1.5;
-    margin: 0 0 14px;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    font-size: 13.5px; color: var(--ink-soft); line-height: 1.5; margin: 0 0 14px;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
   }
   .job-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
   .badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 11.5px;
-    font-weight: 600;
-    padding: 4px 9px;
-    border-radius: 999px;
-    background: var(--bg);
-    color: var(--ink-soft);
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11.5px; font-weight: 600; padding: 4px 9px;
+    border-radius: 999px; background: var(--bg); color: var(--ink-soft);
   }
   .badge.type { background: var(--accent-soft); color: var(--accent-dark); }
   .badge.salary { background: var(--warning-soft); color: var(--warning); }
+  .badge.spaces { background: var(--employer-soft); color: var(--employer); }
+  .badge.full { background: var(--danger-soft); color: var(--danger); }
   .job-footer {
-    margin-top: auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    padding-top: 10px;
-    border-top: 1px solid var(--border);
+    margin-top: auto; display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; padding-top: 10px; border-top: 1px solid var(--border);
   }
   .posted-date { font-size: 11.5px; color: var(--ink-faint); }
   button.apply-btn {
-    background: var(--accent);
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: var(--radius-sm);
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
+    background: var(--accent); color: white; border: none;
+    padding: 8px 16px; border-radius: var(--radius-sm);
+    font-size: 13px; font-weight: 700; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px;
   }
   button.apply-btn:hover { background: var(--accent-dark); }
-  button.apply-btn.applied { background: var(--accent-soft); color: var(--accent-dark); cursor: default; }
+  button.apply-btn.assigned { background: var(--accent-soft); color: var(--accent-dark); cursor: default; }
+  button.apply-btn.rejected { background: var(--danger-soft); color: var(--danger); cursor: default; }
   button.apply-btn.locked { background: var(--bg); color: var(--ink-faint); }
   button.apply-btn:disabled { cursor: default; }
-  .apply-note { font-size: 11.5px; color: var(--danger); margin-top: 6px; }
+  .apply-note { font-size: 11.5px; margin-top: 6px; text-align: right; max-width: 220px; }
+  .apply-note.error { color: var(--danger); }
+  .apply-note.success { color: var(--accent-dark); }
 
-  /* ---------- STATES: loading / empty / error ---------- */
-  .skeleton-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 18px;
-    height: 168px;
-  }
+  /* ---------- STATES ---------- */
+  .skeleton-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 18px; height: 168px; }
   .skel-line {
     background: linear-gradient(90deg, #EEF0F3 25%, #E4E7EC 37%, #EEF0F3 63%);
-    background-size: 400% 100%;
-    animation: shimmer 1.4s ease infinite;
-    border-radius: 6px;
-    margin-bottom: 10px;
+    background-size: 400% 100%; animation: shimmer 1.4s ease infinite;
+    border-radius: 6px; margin-bottom: 10px;
   }
   @keyframes shimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
-  .state-box {
-    text-align: center;
-    padding: 50px 20px;
-    color: var(--ink-soft);
-    grid-column: 1 / -1;
-  }
-  .state-box svg { margin-bottom: 10px; }
+  .state-box { text-align: center; padding: 50px 20px; color: var(--ink-soft); grid-column: 1 / -1; }
   .state-box h3 { margin: 0 0 4px; color: var(--ink); font-size: 16px; }
   .state-box p { margin: 0; font-size: 13.5px; }
 
@@ -368,7 +293,7 @@
 </head>
 <body>
 
-<header>
+<header id="appHeader" class="hidden">
   <div class="header-inner">
     <div class="brand">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="7" width="18" height="13" rx="2" stroke="#0F9D74" stroke-width="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="#0F9D74" stroke-width="2"/></svg>
@@ -378,10 +303,65 @@
   </div>
 </header>
 
-<main>
+<!-- AUTH LANDING SCREEN (shown when logged out) -->
+<div id="authShell" class="auth-shell">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="7" width="18" height="13" rx="2" stroke="#0F9D74" stroke-width="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="#0F9D74" stroke-width="2"/></svg>
+      Shiftly
+    </div>
+    <p class="tagline">Part-time jobs and internships, matched instantly.</p>
 
-  <!-- JOBS TAB -->
-  <section id="tab-jobs">
+    <div class="auth-switch">
+      <button id="switchToLogin" class="active" onclick="setAuthMode('login')">Log in</button>
+      <button id="switchToRegister" onclick="setAuthMode('register')">Register</button>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <div id="loginForm">
+      <label class="first">Email</label>
+      <input type="email" id="loginEmail" placeholder="you@example.com" />
+      <label>Password</label>
+      <input type="password" id="loginPassword" placeholder="••••••••" />
+      <button class="btn btn-primary" id="loginBtn" onclick="login()">Log in</button>
+      <div id="loginMsg" class="banner"></div>
+    </div>
+
+    <!-- REGISTER FORM -->
+    <div id="registerForm" class="hidden">
+      <label class="first">I am a</label>
+      <div class="role-toggle">
+        <div class="role-option selected" id="roleOptSeeker" onclick="selectRole('jobseeker')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#0F9D74" stroke-width="2"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6" stroke="#0F9D74" stroke-width="2"/></svg>
+          <div class="role-label">Job Seeker</div>
+          <div class="role-desc">Browse & apply</div>
+        </div>
+        <div class="role-option" id="roleOptEmployer" onclick="selectRole('employer')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="4" y="8" width="16" height="12" rx="2" stroke="#6C5CE7" stroke-width="2"/><path d="M9 8V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" stroke="#6C5CE7" stroke-width="2"/></svg>
+          <div class="role-label">Employer</div>
+          <div class="role-desc">Post & manage</div>
+        </div>
+      </div>
+      <label>Full name</label>
+      <input type="text" id="regName" placeholder="Jane Silva" />
+      <div class="field-error hidden" id="err-regName">Please enter your name.</div>
+      <label>Email</label>
+      <input type="email" id="regEmail" placeholder="you@example.com" />
+      <div class="field-error hidden" id="err-regEmail">Please enter a valid email.</div>
+      <label>Password</label>
+      <input type="password" id="regPassword" placeholder="At least 6 characters" />
+      <div class="field-error hidden" id="err-regPassword">Password must be at least 6 characters.</div>
+      <button class="btn btn-primary" id="registerBtn" onclick="register()">Create account</button>
+      <div id="regMsg" class="banner"></div>
+    </div>
+  </div>
+</div>
+
+<!-- APP CONTENT (shown when logged in) -->
+<main id="appMain" class="hidden">
+
+  <!-- JOBS SCREEN -->
+  <section id="tab-jobs" class="hidden">
     <div class="page-head">
       <h2>Find your next shift</h2>
       <p>Part-time, remote and internship roles, updated live.</p>
@@ -406,55 +386,10 @@
     <div id="jobsList" class="job-grid"></div>
   </section>
 
-  <!-- LOGIN TAB -->
-  <section id="tab-login" class="hidden">
-    <div class="page-head"><h2>Welcome back</h2><p>Log in to apply or manage your job posts.</p></div>
-    <div class="panel">
-      <label class="first">Email</label>
-      <input type="email" id="loginEmail" placeholder="you@example.com" />
-      <label>Password</label>
-      <input type="password" id="loginPassword" placeholder="••••••••" />
-      <button class="btn btn-primary" id="loginBtn" onclick="login()">Log in</button>
-      <div id="loginMsg" class="banner"></div>
-    </div>
-  </section>
-
-  <!-- REGISTER TAB -->
-  <section id="tab-register" class="hidden">
-    <div class="page-head"><h2>Create your account</h2><p>Join as a job seeker or an employer.</p></div>
-    <div class="panel">
-      <label class="first">I am a</label>
-      <div class="role-toggle">
-        <div class="role-option selected" id="roleOptSeeker" onclick="selectRole('jobseeker')">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#0F9D74" stroke-width="2"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6" stroke="#0F9D74" stroke-width="2"/></svg>
-          <div class="role-label">Job Seeker</div>
-          <div class="role-desc">Browse & apply to jobs</div>
-        </div>
-        <div class="role-option" id="roleOptEmployer" onclick="selectRole('employer')">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="4" y="8" width="16" height="12" rx="2" stroke="#6C5CE7" stroke-width="2"/><path d="M9 8V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" stroke="#6C5CE7" stroke-width="2"/></svg>
-          <div class="role-label">Employer</div>
-          <div class="role-desc">Post & manage jobs</div>
-        </div>
-      </div>
-      <label>Full name</label>
-      <input type="text" id="regName" placeholder="Jane Silva" />
-      <div class="field-error hidden" id="err-regName">Please enter your name.</div>
-      <label>Email</label>
-      <input type="email" id="regEmail" placeholder="you@example.com" />
-      <div class="field-error hidden" id="err-regEmail">Please enter a valid email.</div>
-      <label>Password</label>
-      <input type="password" id="regPassword" placeholder="At least 6 characters" />
-      <div class="field-error hidden" id="err-regPassword">Password must be at least 6 characters.</div>
-      <button class="btn btn-primary" id="registerBtn" onclick="register()">Create account</button>
-      <div id="regMsg" class="banner"></div>
-    </div>
-  </section>
-
-  <!-- POST JOB TAB -->
+  <!-- POST JOB SCREEN (employer home) -->
   <section id="tab-postJob" class="hidden">
     <div class="page-head"><h2>Post a job</h2><p>Reach part-time job seekers in minutes.</p></div>
-    <div id="postJobGate"></div>
-    <div class="panel hidden" id="postJobForm">
+    <div class="panel">
       <label class="first">Job title</label>
       <input type="text" id="jobTitle" placeholder="e.g. Weekend Barista" />
       <div class="field-error hidden" id="err-jobTitle">Please enter a job title.</div>
@@ -473,17 +408,14 @@
         <option value="remote">Remote</option>
         <option value="internship">Internship</option>
       </select>
+      <label>Number of positions</label>
+      <input type="number" id="jobVacancies" placeholder="e.g. 2" min="1" value="1" />
+      <div class="helper-text">Applicants are automatically assigned until this many spots are filled.</div>
       <label>Salary / rate (optional)</label>
       <input type="number" id="jobSalary" placeholder="e.g. 25000" />
       <button class="btn btn-primary" id="postJobBtn" onclick="postJob()">Post job</button>
       <div id="postJobMsg" class="banner"></div>
     </div>
-  </section>
-
-  <!-- PROFILE TAB -->
-  <section id="tab-profile" class="hidden">
-    <div class="page-head"><h2>Your profile</h2></div>
-    <div class="panel" id="profilePanel"></div>
   </section>
 
 </main>
@@ -496,47 +428,56 @@ let token = null;
 let role = null;
 let userEmail = null;
 let allJobs = [];
-let appliedJobIds = new Set();
+let jobOutcomes = {}; // jobId -> "assigned" | "rejected"
 let activeTab = "jobs";
+
+// ---------- AUTH LANDING SWITCH ----------
+function setAuthMode(mode) {
+  document.getElementById("switchToLogin").classList.toggle("active", mode === "login");
+  document.getElementById("switchToRegister").classList.toggle("active", mode === "register");
+  document.getElementById("loginForm").classList.toggle("hidden", mode !== "login");
+  document.getElementById("registerForm").classList.toggle("hidden", mode !== "register");
+}
+
+function showAuthShell() {
+  document.getElementById("authShell").classList.remove("hidden");
+  document.getElementById("appHeader").classList.add("hidden");
+  document.getElementById("appMain").classList.add("hidden");
+}
+
+function showApp() {
+  document.getElementById("authShell").classList.add("hidden");
+  document.getElementById("appHeader").classList.remove("hidden");
+  document.getElementById("appMain").classList.remove("hidden");
+}
 
 // ---------- NAV ----------
 function renderNav() {
   const nav = document.getElementById("navLinks");
   let tabs = [];
-  if (!token) {
-    tabs = [
-      { id: "jobs", label: "Jobs" },
-      { id: "register", label: "Register" },
-      { id: "login", label: "Login", cta: true }
-    ];
-  } else if (role === "jobseeker") {
-    tabs = [
-      { id: "jobs", label: "Jobs" },
-      { id: "profile", label: "Profile" }
-    ];
+  if (role === "jobseeker") {
+    tabs = [{ id: "jobs", label: "Jobs" }];
   } else if (role === "employer") {
     tabs = [
-      { id: "jobs", label: "Jobs" },
       { id: "postJob", label: "Post a Job" },
-      { id: "profile", label: "Profile" }
+      { id: "jobs", label: "All Jobs" }
     ];
   }
 
   nav.innerHTML = tabs.map(t =>
-    `<button data-tab="${t.id}" class="${t.id === activeTab ? "active" : ""} ${t.cta ? "cta-btn" : ""}">${t.label}</button>`
+    `<button data-tab="${t.id}" class="${t.id === activeTab ? "active" : ""}">${t.label}</button>`
   ).join("");
 
-  if (token) {
-    const chip = document.createElement("div");
-    chip.className = "user-chip";
-    chip.innerHTML = `<span class="avatar ${role === "employer" ? "employer" : ""}">${(userEmail || "?")[0].toUpperCase()}</span>
-      <span>${role === "employer" ? "Employer" : "Job seeker"}</span>`;
-    nav.appendChild(chip);
-    const logoutBtn = document.createElement("button");
-    logoutBtn.textContent = "Logout";
-    logoutBtn.onclick = logout;
-    nav.appendChild(logoutBtn);
-  }
+  const chip = document.createElement("div");
+  chip.className = "user-chip";
+  chip.innerHTML = `<span class="avatar ${role === "employer" ? "employer" : ""}">${(userEmail || "?")[0].toUpperCase()}</span>
+    <span>${role === "employer" ? "Employer" : "Job seeker"}</span>`;
+  nav.appendChild(chip);
+
+  const logoutBtn = document.createElement("button");
+  logoutBtn.textContent = "Logout";
+  logoutBtn.onclick = logout;
+  nav.appendChild(logoutBtn);
 
   nav.querySelectorAll("button[data-tab]").forEach(btn => {
     btn.addEventListener("click", () => switchTab(btn.dataset.tab));
@@ -545,21 +486,17 @@ function renderNav() {
 
 function switchTab(tabId) {
   activeTab = tabId;
-  document.querySelectorAll("main > section").forEach(s => s.classList.add("hidden"));
+  document.querySelectorAll("#appMain > section").forEach(s => s.classList.add("hidden"));
   document.getElementById("tab-" + tabId).classList.remove("hidden");
   renderNav();
-  if (tabId === "postJob") renderPostJobGate();
-  if (tabId === "profile") renderProfile();
+  if (tabId === "jobs") loadJobs();
 }
 
 // ---------- HELPERS ----------
-function showBanner(el, message, type) {
-  el.textContent = message;
-  el.className = `banner show ${type}`;
-}
+function showBanner(el, message, type) { el.textContent = message; el.className = `banner show ${type}`; }
 function clearFieldErrors(prefix) {
   document.querySelectorAll(`[id^="err-${prefix}"]`).forEach(e => e.classList.add("hidden"));
-  document.querySelectorAll(`#tab-${activeTab} input, #tab-${activeTab} textarea`).forEach(i => i.classList.remove("invalid"));
+  document.querySelectorAll(`input, textarea`).forEach(i => i.classList.remove("invalid"));
 }
 function setBtnLoading(btn, loading, label) {
   btn.disabled = loading;
@@ -579,15 +516,13 @@ function timeAgo(dateStr) {
 }
 
 // ---------- REGISTER ----------
+window.__selectedRole = "jobseeker";
 function selectRole(r) {
   document.getElementById("roleOptSeeker").classList.toggle("selected", r === "jobseeker");
-  document.getElementById("roleOptSeeker").classList.remove("employer-selected");
   document.getElementById("roleOptEmployer").classList.toggle("selected", r === "employer");
   document.getElementById("roleOptEmployer").classList.toggle("employer-selected", r === "employer");
-  document.getElementById("roleOptEmployer").dataset.chosen = r === "employer" ? "1" : "";
   window.__selectedRole = r;
 }
-window.__selectedRole = "jobseeker";
 
 async function register() {
   const name = document.getElementById("regName").value.trim();
@@ -613,10 +548,11 @@ async function register() {
     });
     const data = await res.json();
     if (res.ok) {
-      showBanner(msgEl, "Account created. You can log in now.", "success");
+      showBanner(msgEl, "Account created! You can log in now.", "success");
       document.getElementById("regName").value = "";
       document.getElementById("regEmail").value = "";
       document.getElementById("regPassword").value = "";
+      setTimeout(() => setAuthMode("login"), 1200);
     } else {
       showBanner(msgEl, data.message || "Registration failed.", "error");
     }
@@ -655,10 +591,16 @@ async function login() {
       userEmail = email;
       document.getElementById("loginEmail").value = "";
       document.getElementById("loginPassword").value = "";
-      switchTab("jobs");
-      renderJobs();
+
+      // Route by role: employer -> Post a Job, jobseeker -> Jobs listing
+      activeTab = role === "employer" ? "postJob" : "jobs";
+      showApp();
+      renderNav();
+      document.querySelectorAll("#appMain > section").forEach(s => s.classList.add("hidden"));
+      document.getElementById("tab-" + activeTab).classList.remove("hidden");
+      if (activeTab === "jobs") loadJobs();
     } else {
-      showBanner(msgEl, data.message || "Login failed.", "error");
+      showBanner(msgEl, data.message || "Login failed. Check your email and password.", "error");
     }
   } catch (err) {
     showBanner(msgEl, "Can't reach the server. Make sure it's running on port 5000.", "error");
@@ -669,21 +611,10 @@ async function login() {
 
 function logout() {
   token = null; role = null; userEmail = null;
-  appliedJobIds = new Set();
-  switchTab("jobs");
-  renderJobs();
-}
-
-// ---------- PROFILE ----------
-function renderProfile() {
-  const panel = document.getElementById("profilePanel");
-  panel.innerHTML = `
-    <label class="first">Signed in as</label>
-    <div style="font-size:14px;padding:8px 0;">${userEmail || "—"}</div>
-    <label>Role</label>
-    <div style="font-size:14px;padding:8px 0; text-transform:capitalize;">${role || "—"}</div>
-    <button class="btn btn-secondary" onclick="logout()" style="margin-top:16px;">Log out</button>
-  `;
+  jobOutcomes = {};
+  activeTab = "jobs";
+  setAuthMode("login");
+  showAuthShell();
 }
 
 // ---------- JOBS ----------
@@ -744,30 +675,30 @@ function renderJobs() {
 
   listEl.innerHTML = jobs.map(job => {
     const company = job.postedBy && job.postedBy.name ? job.postedBy.name : job.company;
-    const applied = appliedJobIds.has(job._id);
+    const outcome = jobOutcomes[job._id];
+    const vacancies = job.vacancies || 1;
+
     let applyBtnHtml;
-    if (!token) {
-      applyBtnHtml = `<button class="apply-btn locked" onclick="handleLockedApply()">Apply</button>`;
-    } else if (role === "employer") {
+    if (role === "employer") {
       applyBtnHtml = `<button class="apply-btn locked" onclick="handleEmployerApplyAttempt()">Apply</button>`;
-    } else if (applied) {
-      applyBtnHtml = `<button class="apply-btn applied" disabled>✓ Applied</button>`;
+    } else if (outcome === "assigned") {
+      applyBtnHtml = `<button class="apply-btn assigned" disabled>✓ Assigned</button>`;
+    } else if (outcome === "rejected") {
+      applyBtnHtml = `<button class="apply-btn rejected" disabled>Not assigned</button>`;
     } else {
       applyBtnHtml = `<button class="apply-btn" onclick="applyToJob('${job._id}', this)">Apply</button>`;
     }
+
     return `
       <div class="job-card type-${job.type}">
-        <div class="job-top">
-          <div>
-            <h3 class="job-title">${job.title}</h3>
-            <p class="job-company">${job.company}${company && company !== job.company ? " · posted by " + company : ""}</p>
-          </div>
-        </div>
+        <h3 class="job-title">${job.title}</h3>
+        <p class="job-company">${job.company}${company && company !== job.company ? " · posted by " + company : ""}</p>
         <p class="job-desc">${job.description || ""}</p>
         <div class="job-meta">
           <span class="badge type">${job.type.replace("-", " ")}</span>
           <span class="badge">📍 ${job.location}</span>
           ${job.salary ? `<span class="badge salary">${job.salary}/mo</span>` : ""}
+          <span class="badge spaces">${vacancies} ${vacancies === 1 ? "spot" : "spots"}</span>
         </div>
         <div class="job-footer">
           <span class="posted-date">${job.createdAt ? "Posted " + timeAgo(job.createdAt) : ""}</span>
@@ -781,14 +712,8 @@ function renderJobs() {
   }).join("");
 }
 
-function handleLockedApply() {
-  switchTab("login");
-  const msgEl = document.getElementById("loginMsg");
-  showBanner(msgEl, "Please log in as a job seeker to apply for this job.", "info");
-}
-
 function handleEmployerApplyAttempt() {
-  alert("Applications are open to job seekers only. Log in with a job seeker account to apply.");
+  alert("Applications are open to job seekers only.");
 }
 
 async function applyToJob(jobId, btnEl) {
@@ -807,18 +732,32 @@ async function applyToJob(jobId, btnEl) {
       }
     });
     const data = await res.json();
+
     if (res.ok) {
-      appliedJobIds.add(jobId);
+      const status = data.application ? data.application.status : "assigned";
+      jobOutcomes[jobId] = status === "assigned" ? "assigned" : "rejected";
+      renderJobs();
+      // Show the outcome message briefly after re-render
+      setTimeout(() => {
+        const n = document.getElementById(`note-${jobId}`);
+        if (!n) return;
+        n.textContent = data.message || (status === "assigned" ? "You're assigned!" : "No space left for this job.");
+        n.className = `apply-note ${status === "assigned" ? "success" : "error"}`;
+      }, 0);
+    } else if (res.status === 400 && data.message === "Already applied") {
+      const existingStatus = data.application ? data.application.status : "pending";
+      jobOutcomes[jobId] = existingStatus === "assigned" ? "assigned" : "rejected";
       renderJobs();
     } else {
-      if (data.message === "Already applied") appliedJobIds.add(jobId);
       noteEl.textContent = data.message || "Could not apply.";
+      noteEl.className = "apply-note error";
       noteEl.classList.remove("hidden");
       btnEl.innerHTML = originalHtml;
       btnEl.disabled = false;
     }
   } catch (err) {
     noteEl.textContent = "Server error. Please try again.";
+    noteEl.className = "apply-note error";
     noteEl.classList.remove("hidden");
     btnEl.innerHTML = originalHtml;
     btnEl.disabled = false;
@@ -826,38 +765,6 @@ async function applyToJob(jobId, btnEl) {
 }
 
 // ---------- POST A JOB ----------
-function renderPostJobGate() {
-  const gateEl = document.getElementById("postJobGate");
-  const formEl = document.getElementById("postJobForm");
-
-  if (token && role === "employer") {
-    gateEl.innerHTML = "";
-    formEl.classList.remove("hidden");
-    return;
-  }
-
-  formEl.classList.add("hidden");
-  if (!token) {
-    gateEl.innerHTML = `
-      <div class="gate">
-        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" style="margin:0 auto"><rect x="5" y="11" width="14" height="9" rx="2" stroke="#8B93A7" stroke-width="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="#8B93A7" stroke-width="2"/></svg>
-        <h3>Employer login required</h3>
-        <p>Log in or register as an employer to post a job.</p>
-        <div class="gate-actions">
-          <button class="btn btn-secondary" onclick="switchTab('register')">Register</button>
-          <button class="btn btn-primary" style="margin-top:0;width:auto;" onclick="switchTab('login')">Log in</button>
-        </div>
-      </div>`;
-  } else {
-    gateEl.innerHTML = `
-      <div class="gate">
-        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" style="margin:0 auto"><circle cx="12" cy="12" r="9" stroke="#8B93A7" stroke-width="2"/><path d="M12 8v5M12 16h.01" stroke="#8B93A7" stroke-width="2" stroke-linecap="round"/></svg>
-        <h3>Job seeker accounts can't post jobs</h3>
-        <p>Posting jobs is available to employer accounts only.</p>
-      </div>`;
-  }
-}
-
 async function postJob() {
   const msgEl = document.getElementById("postJobMsg");
   clearFieldErrors("job");
@@ -869,6 +776,7 @@ async function postJob() {
   const description = document.getElementById("jobDescription").value.trim();
   const type = document.getElementById("jobType").value;
   const salary = document.getElementById("jobSalary").value;
+  const vacancies = document.getElementById("jobVacancies").value;
 
   let valid = true;
   if (!title) { document.getElementById("err-jobTitle").classList.remove("hidden"); document.getElementById("jobTitle").classList.add("invalid"); valid = false; }
@@ -886,14 +794,18 @@ async function postJob() {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`
       },
-      body: JSON.stringify({ title, company, location, description, type, salary: salary ? Number(salary) : undefined })
+      body: JSON.stringify({
+        title, company, location, description, type,
+        salary: salary ? Number(salary) : undefined,
+        vacancies: vacancies ? Number(vacancies) : 1
+      })
     });
     const data = await res.json();
     if (res.ok) {
-      showBanner(msgEl, "Job posted. It now appears in the Jobs tab.", "success");
+      showBanner(msgEl, "Job posted! It now appears in All Jobs.", "success");
       ["jobTitle","jobCompany","jobLocation","jobDescription","jobSalary"].forEach(id => document.getElementById(id).value = "");
       document.getElementById("jobType").value = "part-time";
-      loadJobs();
+      document.getElementById("jobVacancies").value = "1";
     } else {
       showBanner(msgEl, data.message || "Could not post job.", "error");
     }
@@ -905,8 +817,7 @@ async function postJob() {
 }
 
 // ---------- INIT ----------
-renderNav();
-loadJobs();
+showAuthShell();
 </script>
 
 </body>

@@ -26,6 +26,12 @@ const jobSchema = new mongoose.Schema(
     type: Number
     },
 
+    vacancies: {
+    type: Number,
+    default: 1,
+    min: 1
+    },
+
     type: {
     type: String,
     enum: ["part-time", "remote", "internship"],
