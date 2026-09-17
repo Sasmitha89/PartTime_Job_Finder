@@ -214,6 +214,38 @@
   .banner.error { background: var(--danger-soft); color: var(--danger); }
   .banner.info { background: var(--warning-soft); color: var(--warning); }
 
+  /* ---------- SIGNUP ILLUSTRATION ---------- */
+  .signup-illustration {
+    display: block;
+    width: 100%;
+    max-height: 150px;
+    object-fit: contain;
+    margin: 0 auto 18px;
+  }
+
+  /* ---------- JOBS PAGE BACKGROUND ILLUSTRATION ---------- */
+  #tab-jobs { position: relative; overflow: hidden; border-radius: var(--radius-md); }
+  #tab-jobs::before {
+    content: "";
+    position: absolute;
+    top: -10px;
+    right: -50px;
+    width: 480px;
+    height: 320px;
+    background-image: url('assets/Devices-cuate.svg');
+    background-repeat: no-repeat;
+    background-size: contain;
+    opacity: 0.35;
+    pointer-events: none;
+    z-index: -1;
+  }
+  @media (max-width: 900px) {
+    #tab-jobs::before { width: 300px; height: 200px; opacity: 0.22; }
+  }
+  @media (max-width: 640px) {
+    #tab-jobs::before { display: none; }
+  }
+
   /* ---------- JOBS TOOLBAR ---------- */
   .toolbar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
   .search-box { flex: 1; min-width: 200px; position: relative; }
@@ -329,6 +361,7 @@
 
     <!-- REGISTER FORM -->
     <div id="registerForm" class="hidden">
+      <img src="assets/Sign_up-amico.svg" alt="Sign up illustration" class="signup-illustration" />
       <label class="first">I am a</label>
       <div class="role-toggle">
         <div class="role-option selected" id="roleOptSeeker" onclick="selectRole('jobseeker')">
