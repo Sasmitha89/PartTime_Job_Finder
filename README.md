@@ -92,7 +92,7 @@ npm run dev
 You should see `MongoDB Connected` and `Server running on port 5000` in the terminal. Visiting `http://localhost:5000` in a browser should show:
 
 ```
-Job Finder API is running 
+Job Finder API is running 🚀
 ```
 
 ### 5. Open the frontend

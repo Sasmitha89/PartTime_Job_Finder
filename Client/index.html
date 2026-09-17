@@ -111,6 +111,21 @@
     justify-content: center;
     padding: 40px 20px;
   }
+  .auth-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 48px;
+    width: 100%;
+    max-width: 900px;
+  }
+  .auth-illustration {
+    width: 320px;
+    max-width: 40%;
+    height: auto;
+    flex-shrink: 0;
+    filter: drop-shadow(0 12px 24px rgba(20,33,61,0.12));
+  }
   .auth-card {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -119,6 +134,11 @@
     width: 100%;
     max-width: 420px;
     box-shadow: var(--shadow-hover);
+    flex-shrink: 0;
+  }
+  @media (max-width: 800px) {
+    .auth-wrapper { flex-direction: column; gap: 20px; }
+    .auth-illustration { max-width: 220px; order: -1; }
   }
   .auth-logo {
     display: flex; align-items: center; gap: 8px;
@@ -214,36 +234,24 @@
   .banner.error { background: var(--danger-soft); color: var(--danger); }
   .banner.info { background: var(--warning-soft); color: var(--warning); }
 
-  /* ---------- SIGNUP ILLUSTRATION ---------- */
-  .signup-illustration {
-    display: block;
-    width: 100%;
-    max-height: 150px;
-    object-fit: contain;
-    margin: 0 auto 18px;
+  /* ---------- JOBS PAGE HERO ---------- */
+  .jobs-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 28px;
+    margin-bottom: 22px;
   }
-
-  /* ---------- JOBS PAGE BACKGROUND ILLUSTRATION ---------- */
-  #tab-jobs { position: relative; overflow: hidden; border-radius: var(--radius-md); }
-  #tab-jobs::before {
-    content: "";
-    position: absolute;
-    top: -10px;
-    right: -50px;
-    width: 480px;
-    height: 320px;
-    background-image: url('assets/Devices-cuate.svg');
-    background-repeat: no-repeat;
-    background-size: contain;
-    opacity: 0.35;
-    pointer-events: none;
-    z-index: -1;
+  .jobs-hero-text { flex: 1; min-width: 220px; }
+  .jobs-hero-illustration {
+    width: 280px;
+    max-width: 38%;
+    height: auto;
+    flex-shrink: 0;
   }
-  @media (max-width: 900px) {
-    #tab-jobs::before { width: 300px; height: 200px; opacity: 0.22; }
-  }
-  @media (max-width: 640px) {
-    #tab-jobs::before { display: none; }
+  @media (max-width: 760px) {
+    .jobs-hero { flex-direction: column; text-align: center; }
+    .jobs-hero-illustration { max-width: 220px; }
   }
 
   /* ---------- JOBS TOOLBAR ---------- */
@@ -337,7 +345,9 @@
 
 <!-- AUTH LANDING SCREEN (shown when logged out) -->
 <div id="authShell" class="auth-shell">
-  <div class="auth-card">
+  <div class="auth-wrapper">
+    <img id="authIllustration" src="assets/Sign_up-amico.svg" alt="Sign up illustration" class="auth-illustration hidden" />
+    <div class="auth-card">
     <div class="auth-logo">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="7" width="18" height="13" rx="2" stroke="#0F9D74" stroke-width="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="#0F9D74" stroke-width="2"/></svg>
       Shiftly
@@ -361,7 +371,6 @@
 
     <!-- REGISTER FORM -->
     <div id="registerForm" class="hidden">
-      <img src="assets/Sign_up-amico.svg" alt="Sign up illustration" class="signup-illustration" />
       <label class="first">I am a</label>
       <div class="role-toggle">
         <div class="role-option selected" id="roleOptSeeker" onclick="selectRole('jobseeker')">
@@ -388,6 +397,7 @@
       <div id="regMsg" class="banner"></div>
     </div>
   </div>
+  </div>
 </div>
 
 <!-- APP CONTENT (shown when logged in) -->
@@ -395,9 +405,12 @@
 
   <!-- JOBS SCREEN -->
   <section id="tab-jobs" class="hidden">
-    <div class="page-head">
-      <h2>Find your next shift</h2>
-      <p>Part-time, remote and internship roles, updated live.</p>
+    <div class="jobs-hero">
+      <div class="jobs-hero-text">
+        <h2>Find your next shift</h2>
+        <p>Part-time, remote and internship roles, updated live.</p>
+      </div>
+      <img src="assets/Devices-cuate.svg" alt="Devices illustration" class="jobs-hero-illustration" />
     </div>
     <div class="toolbar">
       <div class="search-box">
@@ -470,6 +483,7 @@ function setAuthMode(mode) {
   document.getElementById("switchToRegister").classList.toggle("active", mode === "register");
   document.getElementById("loginForm").classList.toggle("hidden", mode !== "login");
   document.getElementById("registerForm").classList.toggle("hidden", mode !== "register");
+  document.getElementById("authIllustration").classList.toggle("hidden", mode !== "register");
 }
 
 function showAuthShell() {
