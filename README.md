@@ -133,5 +133,5 @@ All authenticated requests need an `Authorization: Bearer <token>` header.
 - If a `.env` was ever committed to this repo's history before `.gitignore` was added, rotate `JWT_SECRET` and your MongoDB credentials, since old commits still contain them even after deleting the file.
 
 ## License
-
-This project is currently unlicensed — add a license of your choice if you plan to share or open-source it.
+Sasmitha Jayawardhana 
+SLIIT - Bsc.Hons in Computer Systems and Network Enginnering 
