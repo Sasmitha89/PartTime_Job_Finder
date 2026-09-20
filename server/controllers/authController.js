@@ -7,14 +7,14 @@ exports.registerUser = async (req, res) => {
 try {
     const { name, email, password, role } = req.body;
 
-    const userExists = await User.findOne({ email });
+    const userExists = await User.findByEmail(email);
     if (userExists) {
     return res.status(400).json({ message: "User already exists" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await User.create({
+    await User.createUser({
     name,
     email,
     password: hashedPassword,
@@ -32,7 +32,7 @@ exports.loginUser = async (req, res) => {
 try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
+    const user = await User.findByEmail(email);
     if (!user) {
     return res.status(404).json({ message: "User not found" });
     }
@@ -43,7 +43,7 @@ try {
     }
 
     const token = jwt.sign(
-    { id: user._id, role: user.role },
+    { id: user.id, role: user.role },
     process.env.JWT_SECRET,
     { expiresIn: "1d" }
     );

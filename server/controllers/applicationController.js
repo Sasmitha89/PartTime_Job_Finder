@@ -12,26 +12,18 @@ try {
     return res.status(404).json({ message: "Job not found" });
     }
 
-    const existing = await Application.findOne({
-    job: req.params.jobId,
-    applicant: req.user.id
-    });
-
+    const existing = await Application.findByJobAndApplicant(req.params.jobId, req.user.id);
     if (existing) {
     return res.status(400).json({ message: "Already applied", application: existing });
     }
 
-    const assignedCount = await Application.countDocuments({
-    job: req.params.jobId,
-    status: "assigned"
-    });
-
+    const assignedCount = await Application.countAssigned(req.params.jobId);
     const hasSpace = assignedCount < (job.vacancies || 1);
     const status = hasSpace ? "assigned" : "rejected";
 
-    const application = await Application.create({
-    job: req.params.jobId,
-    applicant: req.user.id,
+    const application = await Application.createApplication({
+    jobId: req.params.jobId,
+    applicantId: req.user.id,
     status
     });
 
@@ -42,6 +34,10 @@ try {
         : "No available positions left for this job right now."
     });
 } catch (error) {
+    // 23505 = unique_violation — the DB-level safety net for duplicate applications
+    if (error.code === "23505") {
+    return res.status(400).json({ message: "Already applied" });
+    }
     res.status(500).json({ error: error.message });
 }
 };
@@ -49,27 +45,22 @@ try {
 // VIEW APPLICATIONS (Employer)
 exports.getApplications = async (req, res) => {
 try {
-    const applications = await Application.find()
-    .populate("job")
-    .populate("applicant", "name email");
-
+    const applications = await Application.getAllApplications();
     res.json(applications);
 } catch (error) {
     res.status(500).json({ error: error.message });
 }
 };
+
 exports.updateApplicationStatus = async (req, res) => {
 try {
     const { status } = req.body;
 
-    const application = await Application.findById(req.params.id);
+    const application = await Application.updateStatus(req.params.id, status);
 
     if (!application) {
     return res.status(404).json({ message: "Application not found" });
     }
-
-    application.status = status;
-    await application.save();
 
     res.json({ message: "Application status updated", application });
 } catch (error) {

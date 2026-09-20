@@ -3,7 +3,7 @@ const Job = require("../models/job");
 // CREATE JOB (Employer only)
 exports.createJob = async (req, res) => {
 try {
-    const job = await Job.create({
+    const job = await Job.createJob({
     ...req.body,
     postedBy: req.user.id
     });
@@ -17,7 +17,7 @@ try {
 // GET ALL JOBS (Public)
 exports.getJobs = async (req, res) => {
 try {
-    const jobs = await Job.find().populate("postedBy", "name email");
+    const jobs = await Job.getAllJobs();
     res.json(jobs);
 } catch (error) {
     res.status(500).json({ error: error.message });

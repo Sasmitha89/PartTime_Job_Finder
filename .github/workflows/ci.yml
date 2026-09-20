@@ -12,14 +12,17 @@ jobs:
     name: Install, lint, and smoke-test the backend
     runs-on: ubuntu-latest
 
-    # Spin up a real MongoDB instance for the smoke test to connect to.
+    # Spin up a real Postgres instance (matches Supabase) for the smoke test.
     services:
-      mongodb:
-        image: mongo:7
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: job_finder_ci
         ports:
-          - 27017:27017
+          - 5432:5432
         options: >-
-          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -52,10 +55,16 @@ jobs:
       - name: Run test suite (if one exists)
         run: npm test --if-present
 
+      - name: Apply database schema
+        env:
+          PGPASSWORD: postgres
+        run: psql -h 127.0.0.1 -U postgres -d job_finder_ci -f ../supabase/schema.sql
+
       - name: Smoke test - server starts and responds
         env:
           PORT: 5000
-          MONGO_URI: mongodb://127.0.0.1:27017/job-finder-ci
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/job_finder_ci
+          PGSSL: "false"
           JWT_SECRET: ci-test-secret-do-not-use-in-production
         run: |
           node server.js &

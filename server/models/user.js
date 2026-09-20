@@ -1,38 +1,33 @@
-const mongoose = require("mongoose");
+const { pool } = require("../config/db");
 
-const userSchema = new mongoose.Schema(
-{
-    name: {
-    type: String,
-    required: true,
-    trim: true
-    },
+async function findByEmail(email) {
+  const { rows } = await pool.query(
+    `SELECT id, name, email, password, role, skills, location,
+            created_at AS "createdAt"
+     FROM users WHERE email = $1`,
+    [email]
+  );
+  return rows[0] || null;
+}
 
-    email: {
-    type: String,
-    required: true,
-    unique: true,
-    lowercase: true
-    },
+async function findById(id) {
+  const { rows } = await pool.query(
+    `SELECT id, name, email, role, skills, location,
+            created_at AS "createdAt"
+     FROM users WHERE id = $1`,
+    [id]
+  );
+  return rows[0] || null;
+}
 
-    password: {
-    type: String,
-    required: true
-    },
+async function createUser({ name, email, password, role }) {
+  const { rows } = await pool.query(
+    `INSERT INTO users (name, email, password, role)
+     VALUES ($1, $2, $3, $4)
+     RETURNING id, name, email, role, created_at AS "createdAt"`,
+    [name, email, password, role || "jobseeker"]
+  );
+  return rows[0];
+}
 
-    role: {
-    type: String,
-    enum: ["jobseeker", "employer"],
-    default: "jobseeker"
-    },
-
-    skills: [String],
-
-    location: {
-    type: String
-    }
-},
-{ timestamps: true }
-);
-
-module.exports = mongoose.model("User", userSchema);
+module.exports = { findByEmail, findById, createUser };
