@@ -12,6 +12,8 @@ create table if not exists users (
   role text not null default 'jobseeker' check (role in ('jobseeker', 'employer')),
   skills text[],
   location text,
+  bio text,
+  resume_path text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -25,6 +27,8 @@ create table if not exists jobs (
   salary numeric,
   vacancies integer not null default 1 check (vacancies >= 1),
   type text not null default 'part-time' check (type in ('part-time', 'remote', 'internship')),
+  review_mode text not null default 'auto' check (review_mode in ('auto', 'manual')),
+  is_open boolean not null default true,
   posted_by uuid references users(id) on delete set null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()

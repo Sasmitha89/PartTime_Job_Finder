@@ -5,9 +5,13 @@ A full-stack job board where **employers** can post part-time, remote, and inter
 ## Features
 
 - 🔐 JWT-based authentication with two roles: `jobseeker` and `employer`
-- 💼 Employers can post jobs; jobs are publicly listable without logging in
+- 💼 Employers can post, edit, close/reopen, and delete jobs
 - 📝 Job seekers can apply to jobs (duplicate applications are blocked)
-- 📊 Employers can view and update the status of applications (`pending`, `accepted`, `rejected`)
+- ⚡ Two review modes per job:
+  - **Auto** — applicants are instantly assigned while vacancies remain, or told the job is full
+  - **Manual** — applications go to "pending" for the employer to Accept/Reject from the Applicants dashboard
+- 📊 Employer dashboard ("My Jobs") — applicant counts, filled/vacancy ratio, edit/close/delete
+- 🧑‍💼 Job seeker profile — skills, bio, and a PDF resume upload (stored in Supabase Storage), visible to employers reviewing applicants
 - 🔍 Client-side search, type filter, and sort on the Jobs page
 - 🎨 Modern, responsive UI with role-aware navigation and validated forms
 
@@ -118,18 +122,33 @@ Open `Client/index.html` directly in your browser, or use the VS Code "Live Serv
 
 ### Jobs (`/api/jobs`)
 
-| Method | Endpoint | Description             | Auth required        |
-|--------|----------|--------------------------|------------------------|
-| GET    | `/`      | List all jobs             | No                     |
-| POST   | `/`      | Create a job               | Yes — `employer` only |
+| Method | Endpoint       | Description                              | Auth required                          |
+|--------|----------------|-------------------------------------------|------------------------------------------|
+| GET    | `/`            | List all **open** jobs                     | No                                       |
+| GET    | `/mine`        | List the logged-in employer's own jobs (open + closed), with applicant counts | Yes — `employer` only |
+| POST   | `/`            | Create a job                                | Yes — `employer` only                  |
+| PUT    | `/:id`         | Edit a job you posted                       | Yes — `employer`, must own the job     |
+| PATCH  | `/:id/status`  | Close or reopen a job (`{ "isOpen": false }`) | Yes — `employer`, must own the job   |
+| DELETE | `/:id`         | Delete a job you posted (cascades to its applications) | Yes — `employer`, must own the job |
+
+Jobs can be created with a `reviewMode` of `"auto"` (default — applicants are instantly assigned while vacancies remain) or `"manual"` (applications go to `pending` for the employer to review).
 
 ### Applications (`/api/applications`)
 
-| Method | Endpoint  | Description                      | Auth required          |
-|--------|-----------|------------------------------------|--------------------------|
-| POST   | `/:jobId` | Apply to a job                     | Yes — `jobseeker` only |
-| GET    | `/`       | View all applications              | Yes — `employer` only  |
-| PUT    | `/:id`    | Update an application's status      | Yes — `employer` only  |
+| Method | Endpoint  | Description                                         | Auth required                              |
+|--------|-----------|------------------------------------------------------|-----------------------------------------------|
+| POST   | `/:jobId` | Apply to a job                                       | Yes — `jobseeker` only                     |
+| GET    | `/`       | View applications to jobs **you** posted             | Yes — `employer` only                      |
+| PUT    | `/:id`    | Update an application's status (`pending`/`accepted`/`rejected`) | Yes — `employer`, must own the job the application belongs to; accepting is blocked once the job's vacancies are filled |
+
+### Users / Profile (`/api/users`)
+
+| Method | Endpoint         | Description                                  | Auth required                              |
+|--------|------------------|------------------------------------------------|-----------------------------------------------|
+| GET    | `/me`            | Get your own profile                           | Yes                                          |
+| PUT    | `/me`            | Update skills, bio, location                   | Yes                                          |
+| POST   | `/me/resume`     | Upload/replace your resume (PDF, max 5MB)       | Yes — `jobseeker` only                     |
+| GET    | `/:id/resume`    | Get a short-lived signed URL to view a resume    | Yes — the resume owner, or an employer     |
 
 All authenticated requests need an `Authorization: Bearer <token>` header.
 
@@ -140,5 +159,5 @@ All authenticated requests need an `Authorization: Bearer <token>` header.
 - You can rotate your Supabase database password anytime from **Project Settings → Database → Reset database password** if you're ever unsure whether it leaked.
 
 ## License
-Sasmitha Jayawardhana 
-SLIIT - Bsc.Hons in Computer Systems and Network Enginnering 
+
+This project is currently unlicensed — add a license of your choice if you plan to share or open-source it.

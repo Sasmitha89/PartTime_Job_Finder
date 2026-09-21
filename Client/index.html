@@ -306,6 +306,7 @@
   button.apply-btn.assigned { background: var(--accent-soft); color: var(--accent-dark); cursor: default; }
   button.apply-btn.rejected { background: var(--danger-soft); color: var(--danger); cursor: default; }
   button.apply-btn.locked { background: var(--bg); color: var(--ink-faint); }
+  button.apply-btn.pending { background: var(--warning-soft); color: var(--warning); cursor: default; }
   button.apply-btn:disabled { cursor: default; }
   .apply-note { font-size: 11.5px; margin-top: 6px; text-align: right; max-width: 220px; }
   .apply-note.error { color: var(--danger); }
@@ -434,8 +435,9 @@
 
   <!-- POST JOB SCREEN (employer home) -->
   <section id="tab-postJob" class="hidden">
-    <div class="page-head"><h2>Post a job</h2><p>Reach part-time job seekers in minutes.</p></div>
+    <div class="page-head"><h2 id="postJobHeading">Post a job</h2><p id="postJobSubhead">Reach part-time job seekers in minutes.</p></div>
     <div class="panel">
+      <input type="hidden" id="editingJobId" value="" />
       <label class="first">Job title</label>
       <input type="text" id="jobTitle" placeholder="e.g. Weekend Barista" />
       <div class="field-error hidden" id="err-jobTitle">Please enter a job title.</div>
@@ -456,12 +458,66 @@
       </select>
       <label>Number of positions</label>
       <input type="number" id="jobVacancies" placeholder="e.g. 2" min="1" value="1" />
-      <div class="helper-text">Applicants are automatically assigned until this many spots are filled.</div>
       <label>Salary / rate (optional)</label>
       <input type="number" id="jobSalary" placeholder="e.g. 25000" />
+      <label>How should applicants be handled?</label>
+      <select id="jobReviewMode">
+        <option value="auto">Automatic — assign instantly while spots remain</option>
+        <option value="manual">Manual — I'll review and accept/reject each applicant</option>
+      </select>
+      <div class="helper-text">You can change this later by editing the job.</div>
       <button class="btn btn-primary" id="postJobBtn" onclick="postJob()">Post job</button>
+      <button class="btn btn-secondary hidden" id="cancelEditBtn" onclick="cancelEditJob()" style="margin-top: 10px; width: 100%;">Cancel edit</button>
       <div id="postJobMsg" class="banner"></div>
     </div>
+  </section>
+
+  <!-- MY JOBS SCREEN (employer dashboard) -->
+  <section id="tab-myJobs" class="hidden">
+    <div class="page-head">
+      <h2>My Jobs</h2>
+      <p>Everything you've posted, open and closed.</p>
+    </div>
+    <div id="myJobsList" class="job-grid"></div>
+  </section>
+
+  <!-- PROFILE SCREEN (jobseeker) -->
+  <section id="tab-profile" class="hidden">
+    <div class="page-head">
+      <h2>Your profile</h2>
+      <p>Employers see this when you apply to their jobs.</p>
+    </div>
+    <div class="panel" style="max-width: 520px;">
+      <label class="first">Skills</label>
+      <input type="text" id="profileSkills" placeholder="e.g. Customer Service, POS Systems, Bartending" />
+      <div class="helper-text">Separate skills with commas.</div>
+
+      <label>Bio</label>
+      <textarea id="profileBio" placeholder="A short intro — experience, availability, what you're looking for."></textarea>
+
+      <label>Location</label>
+      <input type="text" id="profileLocation" placeholder="e.g. Colombo" />
+
+      <button class="btn btn-primary" id="saveProfileBtn" onclick="saveProfile()">Save profile</button>
+      <div id="profileMsg" class="banner"></div>
+
+      <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border);">
+        <label class="first">Resume (PDF, max 5MB)</label>
+        <div id="resumeStatus" class="helper-text" style="margin-bottom: 10px;">No resume uploaded yet.</div>
+        <input type="file" id="resumeFile" accept="application/pdf" />
+        <button class="btn btn-secondary" id="uploadResumeBtn" onclick="uploadResume()" style="margin-top: 10px;">Upload resume</button>
+        <div id="resumeMsg" class="banner"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- APPLICANTS SCREEN (employer) -->
+  <section id="tab-applicants" class="hidden">
+    <div class="page-head">
+      <h2>Applicants</h2>
+      <p>Everyone who has applied to your job postings.</p>
+    </div>
+    <div id="applicantsList" class="job-grid"></div>
   </section>
 
 </main>
@@ -503,11 +559,16 @@ function renderNav() {
   const nav = document.getElementById("navLinks");
   let tabs = [];
   if (role === "jobseeker") {
-    tabs = [{ id: "jobs", label: "Jobs" }];
+    tabs = [
+      { id: "jobs", label: "Jobs" },
+      { id: "profile", label: "Profile" }
+    ];
   } else if (role === "employer") {
     tabs = [
       { id: "postJob", label: "Post a Job" },
-      { id: "jobs", label: "All Jobs" }
+      { id: "myJobs", label: "My Jobs" },
+      { id: "jobs", label: "All Jobs" },
+      { id: "applicants", label: "Applicants" }
     ];
   }
 
@@ -537,6 +598,9 @@ function switchTab(tabId) {
   document.getElementById("tab-" + tabId).classList.remove("hidden");
   renderNav();
   if (tabId === "jobs") loadJobs();
+  if (tabId === "profile") loadProfile();
+  if (tabId === "myJobs") loadMyJobs();
+  if (tabId === "applicants") loadApplicants();
 }
 
 // ---------- HELPERS ----------
@@ -730,6 +794,8 @@ function renderJobs() {
       applyBtnHtml = `<button class="apply-btn locked" onclick="handleEmployerApplyAttempt()">Apply</button>`;
     } else if (outcome === "assigned") {
       applyBtnHtml = `<button class="apply-btn assigned" disabled>✓ Assigned</button>`;
+    } else if (outcome === "pending") {
+      applyBtnHtml = `<button class="apply-btn pending" disabled>Awaiting review</button>`;
     } else if (outcome === "rejected") {
       applyBtnHtml = `<button class="apply-btn rejected" disabled>Not assigned</button>`;
     } else {
@@ -746,6 +812,7 @@ function renderJobs() {
           <span class="badge">📍 ${job.location}</span>
           ${job.salary ? `<span class="badge salary">${job.salary}/mo</span>` : ""}
           <span class="badge spaces">${vacancies} ${vacancies === 1 ? "spot" : "spots"}</span>
+          ${job.reviewMode === "manual" ? `<span class="badge">Reviewed by employer</span>` : ""}
         </div>
         <div class="job-footer">
           <span class="posted-date">${job.createdAt ? "Posted " + timeAgo(job.createdAt) : ""}</span>
@@ -757,6 +824,12 @@ function renderJobs() {
       </div>
     `;
   }).join("");
+}
+
+function mapStatusToOutcome(status) {
+  if (status === "assigned" || status === "accepted") return "assigned";
+  if (status === "pending") return "pending";
+  return "rejected";
 }
 
 function handleEmployerApplyAttempt() {
@@ -782,18 +855,19 @@ async function applyToJob(jobId, btnEl) {
 
     if (res.ok) {
       const status = data.application ? data.application.status : "assigned";
-      jobOutcomes[jobId] = status === "assigned" ? "assigned" : "rejected";
+      jobOutcomes[jobId] = mapStatusToOutcome(status);
       renderJobs();
       // Show the outcome message briefly after re-render
       setTimeout(() => {
         const n = document.getElementById(`note-${jobId}`);
         if (!n) return;
-        n.textContent = data.message || (status === "assigned" ? "You're assigned!" : "No space left for this job.");
-        n.className = `apply-note ${status === "assigned" ? "success" : "error"}`;
+        const isPositive = status === "assigned" || status === "accepted" || status === "pending";
+        n.textContent = data.message || (isPositive ? "Application submitted." : "No space left for this job.");
+        n.className = `apply-note ${isPositive ? "success" : "error"}`;
       }, 0);
     } else if (res.status === 400 && data.message === "Already applied") {
       const existingStatus = data.application ? data.application.status : "pending";
-      jobOutcomes[jobId] = existingStatus === "assigned" ? "assigned" : "rejected";
+      jobOutcomes[jobId] = mapStatusToOutcome(existingStatus);
       renderJobs();
     } else {
       noteEl.textContent = data.message || "Could not apply.";
@@ -811,12 +885,46 @@ async function applyToJob(jobId, btnEl) {
   }
 }
 
-// ---------- POST A JOB ----------
+// ---------- POST / EDIT A JOB ----------
+function resetJobForm() {
+  ["jobTitle","jobCompany","jobLocation","jobDescription","jobSalary"].forEach(id => document.getElementById(id).value = "");
+  document.getElementById("jobType").value = "part-time";
+  document.getElementById("jobVacancies").value = "1";
+  document.getElementById("jobReviewMode").value = "auto";
+  document.getElementById("editingJobId").value = "";
+  document.getElementById("postJobHeading").textContent = "Post a job";
+  document.getElementById("postJobSubhead").textContent = "Reach part-time job seekers in minutes.";
+  document.getElementById("postJobBtn").textContent = "Post job";
+  document.getElementById("cancelEditBtn").classList.add("hidden");
+}
+
+function startEditJob(job) {
+  document.getElementById("editingJobId").value = job._id;
+  document.getElementById("jobTitle").value = job.title;
+  document.getElementById("jobCompany").value = job.company;
+  document.getElementById("jobLocation").value = job.location;
+  document.getElementById("jobDescription").value = job.description;
+  document.getElementById("jobType").value = job.type;
+  document.getElementById("jobSalary").value = job.salary || "";
+  document.getElementById("jobVacancies").value = job.vacancies || 1;
+  document.getElementById("jobReviewMode").value = job.reviewMode || "auto";
+  document.getElementById("postJobHeading").textContent = "Edit job";
+  document.getElementById("postJobSubhead").textContent = "Update the details below.";
+  document.getElementById("postJobBtn").textContent = "Save changes";
+  document.getElementById("cancelEditBtn").classList.remove("hidden");
+  switchTab("postJob");
+}
+
+function cancelEditJob() {
+  resetJobForm();
+}
+
 async function postJob() {
   const msgEl = document.getElementById("postJobMsg");
   clearFieldErrors("job");
   msgEl.className = "banner";
 
+  const editingId = document.getElementById("editingJobId").value;
   const title = document.getElementById("jobTitle").value.trim();
   const company = document.getElementById("jobCompany").value.trim();
   const location = document.getElementById("jobLocation").value.trim();
@@ -824,6 +932,7 @@ async function postJob() {
   const type = document.getElementById("jobType").value;
   const salary = document.getElementById("jobSalary").value;
   const vacancies = document.getElementById("jobVacancies").value;
+  const reviewMode = document.getElementById("jobReviewMode").value;
 
   let valid = true;
   if (!title) { document.getElementById("err-jobTitle").classList.remove("hidden"); document.getElementById("jobTitle").classList.add("invalid"); valid = false; }
@@ -832,34 +941,393 @@ async function postJob() {
   if (!description) { document.getElementById("err-jobDescription").classList.remove("hidden"); document.getElementById("jobDescription").classList.add("invalid"); valid = false; }
   if (!valid) return;
 
+  const payload = {
+    title, company, location, description, type, reviewMode,
+    salary: salary ? Number(salary) : undefined,
+    vacancies: vacancies ? Number(vacancies) : 1
+  };
+
+  const isEditing = Boolean(editingId);
+  const url = isEditing ? `${API_BASE}/jobs/${editingId}` : `${API_BASE}/jobs`;
+  const method = isEditing ? "PUT" : "POST";
+
   const btn = document.getElementById("postJobBtn");
   setBtnLoading(btn, true);
   try {
-    const res = await fetch(`${API_BASE}/jobs`, {
-      method: "POST",
+    const res = await fetch(url, {
+      method,
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`
       },
-      body: JSON.stringify({
-        title, company, location, description, type,
-        salary: salary ? Number(salary) : undefined,
-        vacancies: vacancies ? Number(vacancies) : 1
-      })
+      body: JSON.stringify(payload)
     });
     const data = await res.json();
     if (res.ok) {
-      showBanner(msgEl, "Job posted! It now appears in All Jobs.", "success");
-      ["jobTitle","jobCompany","jobLocation","jobDescription","jobSalary"].forEach(id => document.getElementById(id).value = "");
-      document.getElementById("jobType").value = "part-time";
-      document.getElementById("jobVacancies").value = "1";
+      showBanner(msgEl, isEditing ? "Job updated." : "Job posted! It now appears in All Jobs.", "success");
+      if (isEditing) {
+        setTimeout(() => { resetJobForm(); switchTab("myJobs"); }, 900);
+      } else {
+        resetJobForm();
+      }
     } else {
-      showBanner(msgEl, data.message || "Could not post job.", "error");
+      showBanner(msgEl, data.message || "Could not save job.", "error");
     }
   } catch (err) {
     showBanner(msgEl, "Can't reach the server. Make sure it's running on port 5000.", "error");
   } finally {
-    setBtnLoading(btn, false, "Post job");
+    setBtnLoading(btn, false, isEditing ? "Save changes" : "Post job");
+  }
+}
+
+// ---------- MY JOBS (employer dashboard) ----------
+async function loadMyJobs() {
+  const listEl = document.getElementById("myJobsList");
+  listEl.innerHTML = Array(3).fill(`
+    <div class="skeleton-card">
+      <div class="skel-line" style="width:60%;height:16px;"></div>
+      <div class="skel-line" style="width:40%;height:12px;"></div>
+      <div class="skel-line" style="width:100%;height:12px;"></div>
+    </div>`).join("");
+
+  try {
+    const res = await fetch(`${API_BASE}/jobs/mine`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error("bad status");
+    const jobs = await res.json();
+    renderMyJobs(jobs);
+  } catch (err) {
+    listEl.innerHTML = `
+      <div class="state-box">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#8B93A7" stroke-width="2"/><path d="M12 8v5M12 16h.01" stroke="#8B93A7" stroke-width="2" stroke-linecap="round"/></svg>
+        <h3>Couldn't load your jobs</h3>
+        <p>Check that your server is running on port 5000, then try again.</p>
+        <button class="btn btn-secondary" style="margin-top:14px;" onclick="loadMyJobs()">Retry</button>
+      </div>`;
+  }
+}
+
+let myJobsCache = [];
+
+function renderMyJobs(jobs) {
+  myJobsCache = jobs;
+  const listEl = document.getElementById("myJobsList");
+
+  if (!jobs || jobs.length === 0) {
+    listEl.innerHTML = `
+      <div class="state-box">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><rect x="3" y="7" width="18" height="13" rx="2" stroke="#8B93A7" stroke-width="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="#8B93A7" stroke-width="2"/></svg>
+        <h3>You haven't posted any jobs yet</h3>
+        <p>Head to "Post a Job" to create your first listing.</p>
+      </div>`;
+    return;
+  }
+
+  listEl.innerHTML = jobs.map(job => `
+    <div class="job-card type-${job.type}" style="${job.isOpen ? "" : "opacity: 0.6;"}">
+      <div class="job-top">
+        <h3 class="job-title">${job.title}</h3>
+      </div>
+      <p class="job-company">${job.company} · ${job.location}</p>
+      <div class="job-meta">
+        <span class="badge ${job.isOpen ? "type" : "full"}">${job.isOpen ? "Open" : "Closed"}</span>
+        <span class="badge">${job.reviewMode === "manual" ? "Manual review" : "Auto-assign"}</span>
+        <span class="badge spaces">${job.filledCount}/${job.vacancies} filled</span>
+        <span class="badge">${job.applicantCount} applicant${job.applicantCount === 1 ? "" : "s"}</span>
+      </div>
+      <div class="job-footer" style="flex-wrap: wrap; gap: 8px;">
+        <button class="btn btn-secondary" style="padding: 7px 12px; font-size: 12.5px;" onclick="editMyJob('${job._id}')">Edit</button>
+        <button class="btn btn-secondary" style="padding: 7px 12px; font-size: 12.5px;" onclick="toggleJobOpen('${job._id}', ${job.isOpen})">${job.isOpen ? "Close" : "Reopen"}</button>
+        <button class="btn btn-secondary" style="padding: 7px 12px; font-size: 12.5px; color: var(--danger);" onclick="deleteMyJob('${job._id}')">Delete</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+function editMyJob(jobId) {
+  const job = myJobsCache.find(j => j._id === jobId);
+  if (job) startEditJob(job);
+}
+
+async function toggleJobOpen(jobId, currentlyOpen) {
+  try {
+    const res = await fetch(`${API_BASE}/jobs/${jobId}/status`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ isOpen: !currentlyOpen })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      loadMyJobs();
+    } else {
+      alert(data.message || "Could not update job status.");
+    }
+  } catch (err) {
+    alert("Server error. Please try again.");
+  }
+}
+
+async function deleteMyJob(jobId) {
+  if (!confirm("Delete this job posting permanently? This also removes all applications to it. This cannot be undone.")) {
+    return;
+  }
+  try {
+    const res = await fetch(`${API_BASE}/jobs/${jobId}`, {
+      method: "DELETE",
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    const data = await res.json();
+    if (res.ok) {
+      loadMyJobs();
+    } else {
+      alert(data.message || "Could not delete job.");
+    }
+  } catch (err) {
+    alert("Server error. Please try again.");
+  }
+}
+
+// ---------- PROFILE (jobseeker) ----------
+async function loadProfile() {
+  try {
+    const res = await fetch(`${API_BASE}/users/me`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    const profile = await res.json();
+    if (!res.ok) return;
+
+    document.getElementById("profileSkills").value = (profile.skills || []).join(", ");
+    document.getElementById("profileBio").value = profile.bio || "";
+    document.getElementById("profileLocation").value = profile.location || "";
+
+    const statusEl = document.getElementById("resumeStatus");
+    if (profile.resumePath) {
+      statusEl.innerHTML = `✓ Resume on file. <a href="#" onclick="viewOwnResume(); return false;" style="color: var(--accent-dark); font-weight: 600;">View it</a>`;
+    } else {
+      statusEl.textContent = "No resume uploaded yet.";
+    }
+  } catch (err) {
+    console.error("Could not load profile", err);
+  }
+}
+
+async function saveProfile() {
+  const msgEl = document.getElementById("profileMsg");
+  msgEl.className = "banner";
+
+  const skills = document.getElementById("profileSkills").value
+    .split(",").map(s => s.trim()).filter(Boolean);
+  const bio = document.getElementById("profileBio").value.trim();
+  const location = document.getElementById("profileLocation").value.trim();
+
+  const btn = document.getElementById("saveProfileBtn");
+  setBtnLoading(btn, true);
+  try {
+    const res = await fetch(`${API_BASE}/users/me`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ skills, bio, location })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showBanner(msgEl, "Profile saved.", "success");
+    } else {
+      showBanner(msgEl, data.message || "Could not save profile.", "error");
+    }
+  } catch (err) {
+    showBanner(msgEl, "Can't reach the server. Make sure it's running on port 5000.", "error");
+  } finally {
+    setBtnLoading(btn, false, "Save profile");
+  }
+}
+
+async function uploadResume() {
+  const msgEl = document.getElementById("resumeMsg");
+  msgEl.className = "banner";
+  const fileInput = document.getElementById("resumeFile");
+  const file = fileInput.files[0];
+
+  if (!file) {
+    showBanner(msgEl, "Choose a PDF file first.", "error");
+    return;
+  }
+  if (file.type !== "application/pdf") {
+    showBanner(msgEl, "Only PDF files are allowed.", "error");
+    return;
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    showBanner(msgEl, "File must be under 5MB.", "error");
+    return;
+  }
+
+  const btn = document.getElementById("uploadResumeBtn");
+  setBtnLoading(btn, true);
+  try {
+    const formData = new FormData();
+    formData.append("resume", file);
+
+    const res = await fetch(`${API_BASE}/users/me/resume`, {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${token}` },
+      body: formData
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showBanner(msgEl, "Resume uploaded!", "success");
+      fileInput.value = "";
+      loadProfile();
+    } else {
+      showBanner(msgEl, data.message || "Upload failed.", "error");
+    }
+  } catch (err) {
+    showBanner(msgEl, "Can't reach the server. Make sure it's running on port 5000.", "error");
+  } finally {
+    setBtnLoading(btn, false, "Upload resume");
+  }
+}
+
+async function getResumeSignedUrl(userId) {
+  const res = await fetch(`${API_BASE}/users/${userId}/resume`, {
+    headers: { "Authorization": `Bearer ${token}` }
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Could not open resume");
+  return data.url;
+}
+
+async function viewOwnResume() {
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    const url = await getResumeSignedUrl(payload.id);
+    window.open(url, "_blank");
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+// ---------- APPLICANTS (employer) ----------
+async function loadApplicants() {
+  const listEl = document.getElementById("applicantsList");
+  listEl.innerHTML = Array(3).fill(`
+    <div class="skeleton-card">
+      <div class="skel-line" style="width:60%;height:16px;"></div>
+      <div class="skel-line" style="width:40%;height:12px;"></div>
+      <div class="skel-line" style="width:100%;height:12px;"></div>
+    </div>`).join("");
+
+  try {
+    const res = await fetch(`${API_BASE}/applications`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error("bad status");
+    const applications = await res.json();
+    renderApplicants(applications);
+  } catch (err) {
+    listEl.innerHTML = `
+      <div class="state-box">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#8B93A7" stroke-width="2"/><path d="M12 8v5M12 16h.01" stroke="#8B93A7" stroke-width="2" stroke-linecap="round"/></svg>
+        <h3>Couldn't load applicants</h3>
+        <p>Check that your server is running on port 5000, then try again.</p>
+        <button class="btn btn-secondary" style="margin-top:14px;" onclick="loadApplicants()">Retry</button>
+      </div>`;
+  }
+}
+
+function renderApplicants(applications) {
+  const listEl = document.getElementById("applicantsList");
+  if (!applications || applications.length === 0) {
+    listEl.innerHTML = `
+      <div class="state-box">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#8B93A7" stroke-width="2"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6" stroke="#8B93A7" stroke-width="2"/></svg>
+        <h3>No applicants yet</h3>
+        <p>Once job seekers apply to your postings, they'll show up here.</p>
+      </div>`;
+    return;
+  }
+
+  const statusBadge = (status) => {
+    if (status === "assigned") return `<span class="badge type">Assigned</span>`;
+    if (status === "accepted") return `<span class="badge type">Accepted</span>`;
+    if (status === "rejected") return `<span class="badge full">Not assigned</span>`;
+    if (status === "pending") return `<span class="badge salary">Awaiting review</span>`;
+    return `<span class="badge">${status}</span>`;
+  };
+
+  listEl.innerHTML = applications.map(app => `
+    <div class="job-card">
+      <h3 class="job-title">${app.applicant.name}</h3>
+      <p class="job-company">${app.applicant.email}${app.applicant.location ? " · " + app.applicant.location : ""}</p>
+      <p class="job-desc">${app.applicant.bio || "No bio provided."}</p>
+      <div class="job-meta">
+        ${statusBadge(app.status)}
+        <span class="badge spaces">Applied to: ${app.job.title}</span>
+      </div>
+      ${(app.applicant.skills && app.applicant.skills.length) ? `
+        <div class="job-meta">
+          ${app.applicant.skills.map(s => `<span class="badge">${s}</span>`).join("")}
+        </div>` : ""}
+      <div class="job-footer" style="flex-wrap: wrap; gap: 8px;">
+        <span class="posted-date">${app.createdAt ? "Applied " + timeAgo(app.createdAt) : ""}</span>
+        ${app.applicant.hasResume
+          ? `<button class="apply-btn" onclick="viewApplicantResume('${app.applicant._id}', this)">View resume</button>`
+          : `<span class="posted-date">No resume</span>`}
+      </div>
+      ${app.status === "pending" ? `
+        <div class="job-footer" style="border-top: none; padding-top: 0; gap: 8px;">
+          <button class="btn btn-primary" style="margin-top: 0; padding: 8px 14px; font-size: 13px;" onclick="reviewApplication('${app._id}', 'accepted', this)">Accept</button>
+          <button class="btn btn-secondary" style="padding: 8px 14px; font-size: 13px; color: var(--danger);" onclick="reviewApplication('${app._id}', 'rejected', this)">Reject</button>
+        </div>
+      ` : ""}
+    </div>
+  `).join("");
+}
+
+async function reviewApplication(applicationId, status, btnEl) {
+  const card = btnEl.closest(".job-card");
+  const buttons = card.querySelectorAll("button");
+  buttons.forEach(b => b.disabled = true);
+
+  try {
+    const res = await fetch(`${API_BASE}/applications/${applicationId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ status })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      loadApplicants();
+    } else {
+      alert(data.message || "Could not update this application.");
+      buttons.forEach(b => b.disabled = false);
+    }
+  } catch (err) {
+    alert("Server error. Please try again.");
+    buttons.forEach(b => b.disabled = false);
+  }
+}
+
+async function viewApplicantResume(userId, btnEl) {
+  const originalText = btnEl.textContent;
+  btnEl.disabled = true;
+  btnEl.textContent = "Loading...";
+  try {
+    const url = await getResumeSignedUrl(userId);
+    window.open(url, "_blank");
+  } catch (err) {
+    alert(err.message);
+  } finally {
+    btnEl.disabled = false;
+    btnEl.textContent = originalText;
   }
 }
 

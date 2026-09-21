@@ -15,7 +15,12 @@ const connectDB = async () => {
     await pool.query("SELECT 1");
     console.log("Database connected");
   } catch (error) {
-    console.error("Database connection failed:", error.message);
+    console.error("Database connection failed:");
+    console.error("  message:", error.message || "(empty)");
+    console.error("  code:", error.code || "(none)");
+    if (error.errors) {
+      error.errors.forEach((e, i) => console.error(`  cause[${i}]:`, e.message, e.code));
+    }
     process.exit(1);
   }
 };

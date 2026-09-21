@@ -19,6 +19,9 @@ app.use("/api/jobs", jobRoutes);
 const applicationRoutes = require("./routes/applicationRoutes");
 app.use("/api/applications", applicationRoutes);
 
+const userRoutes = require("./routes/userRoutes");
+app.use("/api/users", userRoutes);
+
 // Test route
 app.get("/", (req, res) => {
 res.send("Job Finder API is running 🚀");
