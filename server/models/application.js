@@ -100,11 +100,34 @@ async function updateStatus(id, status) {
   return rows[0] || null;
 }
 
+// A job seeker's own applications, with enough job detail to show a
+// meaningful status message — powers the "My Applications" tab.
+async function getApplicationsForApplicant(applicantId) {
+  const { rows } = await pool.query(
+    `SELECT a.id AS "_id", a.status, a.created_at AS "createdAt",
+            j.id AS "jobId", j.title AS "jobTitle", j.company AS "jobCompany",
+            j.location AS "jobLocation", j.type AS "jobType"
+     FROM applications a
+     JOIN jobs j ON a.job_id = j.id
+     WHERE a.applicant_id = $1
+     ORDER BY a.created_at DESC`,
+    [applicantId]
+  );
+
+  return rows.map((r) => ({
+    _id: r._id,
+    status: r.status,
+    createdAt: r.createdAt,
+    job: { _id: r.jobId, title: r.jobTitle, company: r.jobCompany, location: r.jobLocation, type: r.jobType }
+  }));
+}
+
 module.exports = {
   findByJobAndApplicant,
   countFilledSlots,
   createApplication,
   getApplicationsForEmployer,
+  getApplicationsForApplicant,
   findById,
   findByIdWithJob,
   updateStatus

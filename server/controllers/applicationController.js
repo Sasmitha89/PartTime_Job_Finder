@@ -58,6 +58,16 @@ try {
 }
 };
 
+// VIEW MY APPLICATIONS (Jobseeker) — every application this jobseeker has made
+exports.getMyApplications = async (req, res) => {
+try {
+    const applications = await Application.getApplicationsForApplicant(req.user.id);
+    res.json(applications);
+} catch (error) {
+    res.status(500).json({ error: error.message });
+}
+};
+
 // VIEW APPLICATIONS (Employer) — only for jobs this employer posted
 exports.getApplications = async (req, res) => {
 try {

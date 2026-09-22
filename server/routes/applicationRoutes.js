@@ -3,6 +3,7 @@ const express = require("express");
 const {
 applyJob,
 getApplications,
+getMyApplications,
 updateApplicationStatus
 } = require("../controllers/applicationController");
 
@@ -10,6 +11,13 @@ const protect = require("../middleware/authMiddleware");
 const allowRoles = require("../middleware/roleMiddleware");
 
 const router = express.Router();
+
+router.get(
+"/mine",
+protect,
+allowRoles("jobseeker"),
+getMyApplications
+);
 
 router.post(
 "/:jobId",
