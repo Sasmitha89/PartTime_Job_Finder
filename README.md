@@ -11,6 +11,7 @@ A full-stack job board where **employers** can post part-time, remote, and inter
   - **Auto** — applicants are instantly assigned while vacancies remain, or told the job is full
   - **Manual** — applications go to "pending" for the employer to Accept/Reject from the Applicants dashboard
 - 📊 Employer dashboard ("My Jobs") — applicant counts, filled/vacancy ratio, edit/close/delete
+- 📬 Job seeker "My Applications" tab — shows every application's current status (awaiting review / assigned / not selected), so outcomes aren't lost after closing the browser
 - 🧑‍💼 Job seeker profile — skills, bio, and a PDF resume upload (stored in Supabase Storage), visible to employers reviewing applicants
 - 🔍 Client-side search, type filter, and sort on the Jobs page
 - 🎨 Modern, responsive UI with role-aware navigation and validated forms
@@ -138,6 +139,7 @@ Jobs can be created with a `reviewMode` of `"auto"` (default — applicants are 
 | Method | Endpoint  | Description                                         | Auth required                              |
 |--------|-----------|------------------------------------------------------|-----------------------------------------------|
 | POST   | `/:jobId` | Apply to a job                                       | Yes — `jobseeker` only                     |
+| GET    | `/mine`   | View your own applications and their current status  | Yes — `jobseeker` only                     |
 | GET    | `/`       | View applications to jobs **you** posted             | Yes — `employer` only                      |
 | PUT    | `/:id`    | Update an application's status (`pending`/`accepted`/`rejected`) | Yes — `employer`, must own the job the application belongs to; accepting is blocked once the job's vacancies are filled |
 
