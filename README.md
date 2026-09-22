@@ -162,4 +162,5 @@ All authenticated requests need an `Authorization: Bearer <token>` header.
 
 ## License
 
-This project is currently unlicensed — add a license of your choice if you plan to share or open-source it.
+Sasmitha Jayawardhana 
+SLIIT - Bsc.Hons in Computer Systems and Network Engineering
