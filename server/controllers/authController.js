@@ -43,7 +43,7 @@ try {
     }
 
     const token = jwt.sign(
-    { id: user.id, role: user.role },
+    { id: user.id, role: user.role, isAdmin: user.isAdmin || false },
     process.env.JWT_SECRET,
     { expiresIn: "1d" }
     );

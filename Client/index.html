@@ -529,6 +529,26 @@
     <div id="applicantsList" class="job-grid"></div>
   </section>
 
+  <!-- VERIFICATION SCREEN (employer) -->
+  <section id="tab-verification" class="hidden">
+    <div class="page-head">
+      <h2>Verification</h2>
+      <p>Verified employers show a badge job seekers can trust.</p>
+    </div>
+    <div class="panel" style="max-width: 480px;">
+      <div id="verificationStatusBox"></div>
+    </div>
+  </section>
+
+  <!-- ADMIN SCREEN (any account with the admin flag) -->
+  <section id="tab-admin" class="hidden">
+    <div class="page-head">
+      <h2>Admin — Employer Verification</h2>
+      <p>Pending requests appear first.</p>
+    </div>
+    <div id="adminEmployersList" class="job-grid"></div>
+  </section>
+
 </main>
 
 <script>
@@ -538,6 +558,7 @@ const API_BASE = "http://localhost:5000/api";
 let token = null;
 let role = null;
 let userEmail = null;
+let isAdmin = false;
 let allJobs = [];
 let jobOutcomes = {}; // jobId -> "assigned" | "rejected"
 let activeTab = "jobs";
@@ -578,8 +599,13 @@ function renderNav() {
       { id: "postJob", label: "Post a Job" },
       { id: "myJobs", label: "My Jobs" },
       { id: "jobs", label: "All Jobs" },
-      { id: "applicants", label: "Applicants" }
+      { id: "applicants", label: "Applicants" },
+      { id: "verification", label: "Verification" }
     ];
+  }
+
+  if (isAdmin) {
+    tabs.push({ id: "admin", label: "Admin" });
   }
 
   nav.innerHTML = tabs.map(t =>
@@ -611,6 +637,8 @@ function switchTab(tabId) {
   if (tabId === "profile") loadProfile();
   if (tabId === "myJobs") loadMyJobs();
   if (tabId === "myApplications") loadMyApplications();
+  if (tabId === "verification") loadVerificationStatus();
+  if (tabId === "admin") loadAdminEmployers();
   if (tabId === "applicants") loadApplicants();
 }
 
@@ -710,6 +738,7 @@ async function login() {
       token = data.token;
       const payload = JSON.parse(atob(token.split(".")[1]));
       role = payload.role;
+      isAdmin = payload.isAdmin || false;
       userEmail = email;
       document.getElementById("loginEmail").value = "";
       document.getElementById("loginPassword").value = "";
@@ -732,7 +761,7 @@ async function login() {
 }
 
 function logout() {
-  token = null; role = null; userEmail = null;
+  token = null; role = null; userEmail = null; isAdmin = false;
   jobOutcomes = {};
   activeTab = "jobs";
   setAuthMode("login");
@@ -797,6 +826,7 @@ function renderJobs() {
 
   listEl.innerHTML = jobs.map(job => {
     const company = job.postedBy && job.postedBy.name ? job.postedBy.name : job.company;
+    const isVerified = job.postedBy && job.postedBy.verificationStatus === "verified";
     const outcome = jobOutcomes[job._id];
     const vacancies = job.vacancies || 1;
 
@@ -816,7 +846,7 @@ function renderJobs() {
     return `
       <div class="job-card type-${job.type}">
         <h3 class="job-title">${job.title}</h3>
-        <p class="job-company">${job.company}${company && company !== job.company ? " · posted by " + company : ""}</p>
+        <p class="job-company">${job.company}${company && company !== job.company ? " · posted by " + company : ""}${isVerified ? ` <img src="assets/verified-badge.svg" alt="Verified" title="Verified employer" style="height:14px;width:14px;vertical-align:middle;margin-left:2px;position:relative;top:-1px;" />` : ""}</p>
         <p class="job-desc">${job.description || ""}</p>
         <div class="job-meta">
           <span class="badge type">${job.type.replace("-", " ")}</span>
@@ -893,6 +923,159 @@ async function applyToJob(jobId, btnEl) {
     noteEl.classList.remove("hidden");
     btnEl.innerHTML = originalHtml;
     btnEl.disabled = false;
+  }
+}
+
+// ---------- VERIFICATION (employer) ----------
+async function loadVerificationStatus() {
+  const box = document.getElementById("verificationStatusBox");
+  box.innerHTML = `<div class="skel-line" style="width:60%;height:16px;"></div><div class="skel-line" style="width:100%;height:60px;"></div>`;
+
+  try {
+    const res = await fetch(`${API_BASE}/users/me`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    const profile = await res.json();
+    if (!res.ok) throw new Error();
+    renderVerificationStatus(profile);
+  } catch (err) {
+    box.innerHTML = `<p class="helper-text">Couldn't load your verification status. Try switching tabs and back.</p>`;
+  }
+}
+
+function renderVerificationStatus(profile) {
+  const box = document.getElementById("verificationStatusBox");
+  const status = profile.verificationStatus || "unverified";
+
+  const statusInfo = {
+    verified: { label: "✓ Verified", cls: "success", desc: "Your account is verified. Job seekers see a Verified badge next to your listings." },
+    pending: { label: "Pending review", cls: "info", desc: "Your request is waiting for an admin to review it." },
+    rejected: { label: "Rejected", cls: "error", desc: "Your last request wasn't approved. You can submit a new one below." },
+    unverified: { label: "Not verified", cls: "info", desc: "Request verification so job seekers see a trust badge on your listings." }
+  };
+  const info = statusInfo[status] || statusInfo.unverified;
+
+  const canRequest = status === "unverified" || status === "rejected";
+
+  box.innerHTML = `
+    <label class="first">Current status</label>
+    <div class="banner show ${info.cls}">${info.label} — ${info.desc}</div>
+    ${canRequest ? `
+      <label>Business name / registration number (optional)</label>
+      <input type="text" id="verificationNote" placeholder="e.g. ABC Restaurant, BR 123456" value="${profile.verificationNote || ""}" />
+      <button class="btn btn-primary" id="requestVerificationBtn" onclick="submitVerificationRequest()">Request verification</button>
+      <div id="verificationMsg" class="banner"></div>
+    ` : ""}
+  `;
+}
+
+async function submitVerificationRequest() {
+  const msgEl = document.getElementById("verificationMsg");
+  msgEl.className = "banner";
+  const note = document.getElementById("verificationNote").value.trim();
+
+  const btn = document.getElementById("requestVerificationBtn");
+  setBtnLoading(btn, true);
+  try {
+    const res = await fetch(`${API_BASE}/users/me/request-verification`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ note })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      loadVerificationStatus();
+    } else {
+      showBanner(msgEl, data.message || "Could not submit request.", "error");
+      setBtnLoading(btn, false, "Request verification");
+    }
+  } catch (err) {
+    showBanner(msgEl, "Can't reach the server. Make sure it's running on port 5000.", "error");
+    setBtnLoading(btn, false, "Request verification");
+  }
+}
+
+// ---------- ADMIN ----------
+async function loadAdminEmployers() {
+  const listEl = document.getElementById("adminEmployersList");
+  listEl.innerHTML = Array(3).fill(`
+    <div class="skeleton-card">
+      <div class="skel-line" style="width:60%;height:16px;"></div>
+      <div class="skel-line" style="width:40%;height:12px;"></div>
+    </div>`).join("");
+
+  try {
+    const res = await fetch(`${API_BASE}/admin/employers`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error("bad status");
+    const employers = await res.json();
+    renderAdminEmployers(employers);
+  } catch (err) {
+    listEl.innerHTML = `
+      <div class="state-box">
+        <h3>Couldn't load employers</h3>
+        <p>Check that your server is running, then try again.</p>
+        <button class="btn btn-secondary" style="margin-top:14px;" onclick="loadAdminEmployers()">Retry</button>
+      </div>`;
+  }
+}
+
+function renderAdminEmployers(employers) {
+  const listEl = document.getElementById("adminEmployersList");
+  if (!employers || employers.length === 0) {
+    listEl.innerHTML = `<div class="state-box"><h3>No employers yet</h3></div>`;
+    return;
+  }
+
+  const statusBadge = (status) => {
+    if (status === "verified") return `<span class="badge type">✓ Verified</span>`;
+    if (status === "pending") return `<span class="badge salary">Pending</span>`;
+    if (status === "rejected") return `<span class="badge full">Rejected</span>`;
+    return `<span class="badge">Unverified</span>`;
+  };
+
+  listEl.innerHTML = employers.map(emp => `
+    <div class="job-card">
+      <h3 class="job-title">${emp.name}</h3>
+      <p class="job-company">${emp.email}</p>
+      ${emp.verificationNote ? `<p class="job-desc">${emp.verificationNote}</p>` : ""}
+      <div class="job-meta">${statusBadge(emp.verificationStatus)}</div>
+      <div class="job-footer" style="flex-wrap: wrap; gap: 8px;">
+        <button class="btn btn-primary" style="margin-top:0; padding: 7px 12px; font-size: 12.5px;" onclick="adminSetVerification('${emp._id}', 'verified', this)">Verify</button>
+        <button class="btn btn-secondary" style="padding: 7px 12px; font-size: 12.5px; color: var(--danger);" onclick="adminSetVerification('${emp._id}', 'rejected', this)">Reject</button>
+        <button class="btn btn-secondary" style="padding: 7px 12px; font-size: 12.5px;" onclick="adminSetVerification('${emp._id}', 'unverified', this)">Reset</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+async function adminSetVerification(employerId, status, btnEl) {
+  const card = btnEl.closest(".job-card");
+  card.querySelectorAll("button").forEach(b => b.disabled = true);
+
+  try {
+    const res = await fetch(`${API_BASE}/admin/employers/${employerId}/verification`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ status })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      loadAdminEmployers();
+    } else {
+      alert(data.message || "Could not update status.");
+      card.querySelectorAll("button").forEach(b => b.disabled = false);
+    }
+  } catch (err) {
+    alert("Server error. Please try again.");
+    card.querySelectorAll("button").forEach(b => b.disabled = false);
   }
 }
 

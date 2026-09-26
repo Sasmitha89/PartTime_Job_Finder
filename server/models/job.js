@@ -21,7 +21,8 @@ async function getAllJobs() {
     `SELECT j.id AS "_id", j.title, j.description, j.company, j.location, j.salary,
             j.vacancies, j.type, j.review_mode AS "reviewMode",
             j.created_at AS "createdAt", j.updated_at AS "updatedAt",
-            u.id AS "postedById", u.name AS "postedByName", u.email AS "postedByEmail"
+            u.id AS "postedById", u.name AS "postedByName", u.email AS "postedByEmail",
+            u.verification_status AS "postedByVerification"
      FROM jobs j
      LEFT JOIN users u ON j.posted_by = u.id
      WHERE j.is_open = true
@@ -41,7 +42,7 @@ async function getAllJobs() {
     createdAt: r.createdAt,
     updatedAt: r.updatedAt,
     postedBy: r.postedById
-      ? { _id: r.postedById, name: r.postedByName, email: r.postedByEmail }
+      ? { _id: r.postedById, name: r.postedByName, email: r.postedByEmail, verificationStatus: r.postedByVerification }
       : null
   }));
 }

@@ -31,6 +31,17 @@ exports.updateMyProfile = async (req, res) => {
   }
 };
 
+// POST /api/users/me/request-verification — employer submits (or resubmits) a verification request
+exports.requestVerification = async (req, res) => {
+  try {
+    const { note } = req.body;
+    const updated = await User.requestVerification(req.user.id, note);
+    res.json({ message: "Verification requested. An admin will review it soon.", profile: updated });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 // POST /api/users/me/resume — upload/replace the logged-in user's resume (jobseeker only)
 exports.uploadResume = async (req, res) => {
   try {

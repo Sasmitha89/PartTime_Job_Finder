@@ -12,6 +12,7 @@ A full-stack job board where **employers** can post part-time, remote, and inter
   - **Manual** — applications go to "pending" for the employer to Accept/Reject from the Applicants dashboard
 - 📊 Employer dashboard ("My Jobs") — applicant counts, filled/vacancy ratio, edit/close/delete
 - 📬 Job seeker "My Applications" tab — shows every application's current status (awaiting review / assigned / not selected), so outcomes aren't lost after closing the browser
+- ✅ Employer verification — employers can request a Verified badge (shown on their job listings); a lightweight admin panel lets a designated admin account approve or reject requests
 - 🧑‍💼 Job seeker profile — skills, bio, and a PDF resume upload (stored in Supabase Storage), visible to employers reviewing applicants
 - 🔍 Client-side search, type filter, and sort on the Jobs page
 - 🎨 Modern, responsive UI with role-aware navigation and validated forms
@@ -151,6 +152,24 @@ Jobs can be created with a `reviewMode` of `"auto"` (default — applicants are 
 | PUT    | `/me`            | Update skills, bio, location                   | Yes                                          |
 | POST   | `/me/resume`     | Upload/replace your resume (PDF, max 5MB)       | Yes — `jobseeker` only                     |
 | GET    | `/:id/resume`    | Get a short-lived signed URL to view a resume    | Yes — the resume owner, or an employer     |
+| POST   | `/me/request-verification` | Request (or re-request) employer verification | Yes — `employer` only          |
+
+### Admin (`/api/admin`)
+
+Admin access is a separate flag (`is_admin`) on a user account — independent of `role` — set manually in the database (see below). It is not something anyone can sign up for.
+
+| Method | Endpoint                        | Description                                | Auth required     |
+|--------|----------------------------------|----------------------------------------------|----------------------|
+| GET    | `/employers`                     | List all employers, pending requests first    | Yes — admin only   |
+| PATCH  | `/employers/:id/verification`    | Set an employer's status (`unverified`/`pending`/`verified`/`rejected`) | Yes — admin only |
+
+To make your own account an admin, run this once in Supabase's SQL Editor (see `supabase/migrations/003_employer_verification.sql`):
+
+```sql
+update users set is_admin = true where email = 'you@example.com';
+```
+
+Then log out and log back in — the admin flag is baked into your login token, so a fresh login is needed after promotion.
 
 All authenticated requests need an `Authorization: Bearer <token>` header.
 
@@ -162,5 +181,4 @@ All authenticated requests need an `Authorization: Bearer <token>` header.
 
 ## License
 
-Sasmitha Jayawardhana 
-SLIIT - Bsc.Hons in Computer Systems and Network Engineering
+This project is currently unlicensed — add a license of your choice if you plan to share or open-source it.

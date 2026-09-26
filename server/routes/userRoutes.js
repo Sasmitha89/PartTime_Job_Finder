@@ -5,7 +5,8 @@ const {
   getMyProfile,
   updateMyProfile,
   uploadResume,
-  getResumeUrl
+  getResumeUrl,
+  requestVerification
 } = require("../controllers/userController");
 
 const protect = require("../middleware/authMiddleware");
@@ -22,6 +23,7 @@ const upload = multer({
 
 router.get("/me", protect, getMyProfile);
 router.put("/me", protect, updateMyProfile);
+router.post("/me/request-verification", protect, allowRoles("employer"), requestVerification);
 router.post("/me/resume", protect, allowRoles("jobseeker"), upload.single("resume"), uploadResume);
 
 // A resume can be viewed by its owner, or by an employer reviewing applicants.

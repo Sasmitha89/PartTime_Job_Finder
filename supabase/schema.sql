@@ -14,6 +14,10 @@ create table if not exists users (
   location text,
   bio text,
   resume_path text,
+  verification_status text not null default 'unverified'
+    check (verification_status in ('unverified', 'pending', 'verified', 'rejected')),
+  verification_note text,
+  is_admin boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
