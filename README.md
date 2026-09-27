@@ -194,4 +194,6 @@ A few ideas that came up but haven't been implemented:
 - Automated test suite (CI currently does a syntax check + live smoke test, not unit tests)
 
 ## License
-Currently unlicensed — add one if you plan to share or open-source this.
+Dheemantha Jayawardhana
+SLIIT - Bsc.Hons in Computer Systems and Network Engineering
+
