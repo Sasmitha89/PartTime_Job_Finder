@@ -137,13 +137,41 @@ update users set is_admin = true where email = 'you@example.com';
 ```
 Log out and back in on that account — the admin flag is baked into your login token, so a fresh login is required after promotion.
 
+### Password reset (optional email setup)
+
+Clicking "Forgot password?" always works, even without setting up email — if `SMTP_HOST` isn't set in `.env`, the reset link just gets printed to your server's terminal instead of emailed, so you can copy-paste it into your browser to test the full flow.
+
+To send real emails, using Gmail as an example:
+1. Turn on 2-Step Verification on your Google account (required for the next step).
+2. Go to [Google App Passwords](https://myaccount.google.com/apppasswords), create one for "Mail", and copy the 16-character password it gives you.
+3. In `server/.env`, set:
+   ```
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=587
+   SMTP_USER=youraddress@gmail.com
+   SMTP_PASS=your_16_character_app_password
+   SMTP_FROM=youraddress@gmail.com
+   CLIENT_URL=http://127.0.0.1:5500
+   ```
+4. `CLIENT_URL` should point to wherever `Client/index.html` is actually served from — if you're using the VS Code "Live Server" extension, that's usually `http://127.0.0.1:5500`. This is what gets used to build the clickable link inside the email.
+
 ## API Reference
 
 ### Auth (`/api/auth`)
+<<<<<<< HEAD
+
+| Method | Endpoint    | Description                  | Auth required |
+|--------|-------------|-------------------------------|----------------|
+| POST   | `/register` | Create a new user              | No             |
+| POST   | `/login`    | Log in, returns a JWT token     | No             |
+| POST   | `/forgot-password` | Request a reset link (always responds the same way, whether or not the email exists) | No |
+| POST   | `/reset-password`  | Set a new password using a valid reset token | No |
+=======
 | Method | Endpoint    | Description             | Auth |
 |--------|-------------|--------------------------|------|
 | POST   | `/register` | Create a new user         | No   |
 | POST   | `/login`    | Log in, returns a JWT      | No   |
+>>>>>>> bb65f18942ac74aa76c293741722fda18fdf7cb1
 
 ### Jobs (`/api/jobs`)
 | Method | Endpoint      | Description                                  | Auth                     |
