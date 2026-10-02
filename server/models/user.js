@@ -101,6 +101,37 @@ async function setResumePath(id, resumePath) {
   return rows[0] || null;
 }
 
+// ---------- Password reset ----------
+async function setResetToken(email, tokenHash, expiresAt) {
+  const { rows } = await pool.query(
+    `UPDATE users
+     SET reset_token_hash = $1, reset_token_expires = $2, updated_at = now()
+     WHERE email = $3
+     RETURNING id`,
+    [tokenHash, expiresAt, email]
+  );
+  return rows[0] || null;
+}
+
+// Only returns a user if the token hash matches AND hasn't expired yet.
+async function findByValidResetToken(tokenHash) {
+  const { rows } = await pool.query(
+    `SELECT id, email FROM users
+     WHERE reset_token_hash = $1 AND reset_token_expires > now()`,
+    [tokenHash]
+  );
+  return rows[0] || null;
+}
+
+async function resetPassword(userId, hashedPassword) {
+  await pool.query(
+    `UPDATE users
+     SET password = $1, reset_token_hash = NULL, reset_token_expires = NULL, updated_at = now()
+     WHERE id = $2`,
+    [hashedPassword, userId]
+  );
+}
+
 module.exports = {
   findByEmail,
   findById,
@@ -110,5 +141,8 @@ module.exports = {
   setResumePath,
   requestVerification,
   getEmployersForAdmin,
-  setVerificationStatus
+  setVerificationStatus,
+  setResetToken,
+  findByValidResetToken,
+  resetPassword
 };
