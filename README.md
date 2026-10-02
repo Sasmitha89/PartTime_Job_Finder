@@ -127,20 +127,23 @@ npm run dev
 ```
 You should see `Database connected` and `Server running on port 5000`.
 
-### 5. Open the frontend
+### 6. Open the frontend
+Open `Client/index.html` directly in your browser (or use the VS Code Live Server extension).
 
-Open `Client/index.html` directly in your browser, or use the VS Code "Live Server" extension for auto-reload during development.
-
-> The frontend expects the API at `http://localhost:5000/api`. If you change `PORT` in `.env`, update `API_BASE` at the top of the `<script>` section in `Client/index.html` to match.
+### 7. (Optional) Make yourself an admin
+In Supabase SQL Editor:
+```sql
+update users set is_admin = true where email = 'you@example.com';
+```
+Log out and back in on that account — the admin flag is baked into your login token, so a fresh login is required after promotion.
 
 ## API Reference
 
 ### Auth (`/api/auth`)
-
-| Method | Endpoint    | Description                  | Auth required |
-|--------|-------------|-------------------------------|----------------|
-| POST   | `/register` | Create a new user              | No             |
-| POST   | `/login`    | Log in, returns a JWT token     | No             |
+| Method | Endpoint    | Description             | Auth |
+|--------|-------------|--------------------------|------|
+| POST   | `/register` | Create a new user         | No   |
+| POST   | `/login`    | Log in, returns a JWT      | No   |
 
 ### Jobs (`/api/jobs`)
 | Method | Endpoint      | Description                                  | Auth                     |
