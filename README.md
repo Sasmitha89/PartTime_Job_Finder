@@ -113,6 +113,24 @@ Open `Client/index.html` directly in your browser, or use the VS Code "Live Serv
 
 > The frontend expects the API at `http://localhost:5000/api`. If you change `PORT` in `.env`, update `API_BASE` at the top of the `<script>` section in `Client/index.html` to match.
 
+### Password reset (optional email setup)
+
+Clicking "Forgot password?" always works, even without setting up email — if `SMTP_HOST` isn't set in `.env`, the reset link just gets printed to your server's terminal instead of emailed, so you can copy-paste it into your browser to test the full flow.
+
+To send real emails, using Gmail as an example:
+1. Turn on 2-Step Verification on your Google account (required for the next step).
+2. Go to [Google App Passwords](https://myaccount.google.com/apppasswords), create one for "Mail", and copy the 16-character password it gives you.
+3. In `server/.env`, set:
+   ```
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=587
+   SMTP_USER=youraddress@gmail.com
+   SMTP_PASS=your_16_character_app_password
+   SMTP_FROM=youraddress@gmail.com
+   CLIENT_URL=http://127.0.0.1:5500
+   ```
+4. `CLIENT_URL` should point to wherever `Client/index.html` is actually served from — if you're using the VS Code "Live Server" extension, that's usually `http://127.0.0.1:5500`. This is what gets used to build the clickable link inside the email.
+
 ## API Reference
 
 ### Auth (`/api/auth`)
@@ -121,6 +139,8 @@ Open `Client/index.html` directly in your browser, or use the VS Code "Live Serv
 |--------|-------------|-------------------------------|----------------|
 | POST   | `/register` | Create a new user              | No             |
 | POST   | `/login`    | Log in, returns a JWT token     | No             |
+| POST   | `/forgot-password` | Request a reset link (always responds the same way, whether or not the email exists) | No |
+| POST   | `/reset-password`  | Set a new password using a valid reset token | No |
 
 ### Jobs (`/api/jobs`)
 

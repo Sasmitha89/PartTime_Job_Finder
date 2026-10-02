@@ -18,6 +18,8 @@ create table if not exists users (
     check (verification_status in ('unverified', 'pending', 'verified', 'rejected')),
   verification_note text,
   is_admin boolean not null default false,
+  reset_token_hash text,
+  reset_token_expires timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

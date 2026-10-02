@@ -367,7 +367,32 @@
       <label>Password</label>
       <input type="password" id="loginPassword" placeholder="••••••••" />
       <button class="btn btn-primary" id="loginBtn" onclick="login()">Log in</button>
+      <div style="text-align: center; margin-top: 12px;">
+        <a href="#" onclick="setAuthMode('forgot'); return false;" style="font-size: 13px; color: var(--ink-soft);">Forgot password?</a>
+      </div>
       <div id="loginMsg" class="banner"></div>
+    </div>
+
+    <!-- FORGOT PASSWORD FORM -->
+    <div id="forgotForm" class="hidden">
+      <label class="first">Email</label>
+      <input type="email" id="forgotEmail" placeholder="you@example.com" />
+      <button class="btn btn-primary" id="forgotBtn" onclick="submitForgotPassword()">Send reset link</button>
+      <div style="text-align: center; margin-top: 12px;">
+        <a href="#" onclick="setAuthMode('login'); return false;" style="font-size: 13px; color: var(--ink-soft);">Back to login</a>
+      </div>
+      <div id="forgotMsg" class="banner"></div>
+    </div>
+
+    <!-- RESET PASSWORD FORM (shown when the page loads with ?resetToken=...) -->
+    <div id="resetForm" class="hidden">
+      <input type="hidden" id="resetToken" value="" />
+      <label class="first">New password</label>
+      <input type="password" id="resetNewPassword" placeholder="At least 6 characters" />
+      <label>Confirm new password</label>
+      <input type="password" id="resetConfirmPassword" placeholder="Re-enter your new password" />
+      <button class="btn btn-primary" id="resetBtn" onclick="submitResetPassword()">Set new password</button>
+      <div id="resetMsg" class="banner"></div>
     </div>
 
     <!-- REGISTER FORM -->
@@ -565,10 +590,14 @@ let activeTab = "jobs";
 
 // ---------- AUTH LANDING SWITCH ----------
 function setAuthMode(mode) {
+  const showSwitch = mode === "login" || mode === "register";
+  document.querySelector(".auth-switch").classList.toggle("hidden", !showSwitch);
   document.getElementById("switchToLogin").classList.toggle("active", mode === "login");
   document.getElementById("switchToRegister").classList.toggle("active", mode === "register");
   document.getElementById("loginForm").classList.toggle("hidden", mode !== "login");
   document.getElementById("registerForm").classList.toggle("hidden", mode !== "register");
+  document.getElementById("forgotForm").classList.toggle("hidden", mode !== "forgot");
+  document.getElementById("resetForm").classList.toggle("hidden", mode !== "reset");
   document.getElementById("authIllustration").classList.toggle("hidden", mode !== "register");
 }
 
@@ -757,6 +786,76 @@ async function login() {
     showBanner(msgEl, "Can't reach the server. Make sure it's running on port 5000.", "error");
   } finally {
     setBtnLoading(btn, false, "Log in");
+  }
+}
+
+async function submitForgotPassword() {
+  const email = document.getElementById("forgotEmail").value.trim();
+  const msgEl = document.getElementById("forgotMsg");
+  msgEl.className = "banner";
+
+  if (!email) {
+    showBanner(msgEl, "Please enter your email.", "error");
+    return;
+  }
+
+  const btn = document.getElementById("forgotBtn");
+  setBtnLoading(btn, true);
+  try {
+    const res = await fetch(`${API_BASE}/auth/forgot-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    // Always shown as success — the backend deliberately gives the same
+    // response whether or not the email exists, so this never reveals
+    // which emails are registered.
+    showBanner(msgEl, data.message || "If an account with that email exists, a reset link has been sent.", "success");
+  } catch (err) {
+    showBanner(msgEl, "Can't reach the server. Make sure it's running on port 5000.", "error");
+  } finally {
+    setBtnLoading(btn, false, "Send reset link");
+  }
+}
+
+async function submitResetPassword() {
+  const token = document.getElementById("resetToken").value;
+  const newPassword = document.getElementById("resetNewPassword").value;
+  const confirmPassword = document.getElementById("resetConfirmPassword").value;
+  const msgEl = document.getElementById("resetMsg");
+  msgEl.className = "banner";
+
+  if (newPassword.length < 6) {
+    showBanner(msgEl, "Password must be at least 6 characters.", "error");
+    return;
+  }
+  if (newPassword !== confirmPassword) {
+    showBanner(msgEl, "Passwords don't match.", "error");
+    return;
+  }
+
+  const btn = document.getElementById("resetBtn");
+  setBtnLoading(btn, true);
+  try {
+    const res = await fetch(`${API_BASE}/auth/reset-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token, newPassword })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showBanner(msgEl, data.message || "Password updated. You can now log in.", "success");
+      document.getElementById("resetNewPassword").value = "";
+      document.getElementById("resetConfirmPassword").value = "";
+      setTimeout(() => setAuthMode("login"), 1500);
+    } else {
+      showBanner(msgEl, data.message || "Could not reset password.", "error");
+    }
+  } catch (err) {
+    showBanner(msgEl, "Can't reach the server. Make sure it's running on port 5000.", "error");
+  } finally {
+    setBtnLoading(btn, false, "Set new password");
   }
 }
 
@@ -1596,6 +1695,15 @@ async function viewApplicantResume(userId, btnEl) {
 
 // ---------- INIT ----------
 showAuthShell();
+
+// If this page was opened from a password-reset email link, it'll have
+// ?resetToken=... in the URL — jump straight to the reset screen.
+const urlParams = new URLSearchParams(window.location.search);
+const resetTokenFromUrl = urlParams.get("resetToken");
+if (resetTokenFromUrl) {
+  document.getElementById("resetToken").value = resetTokenFromUrl;
+  setAuthMode("reset");
+}
 </script>
 
 </body>
